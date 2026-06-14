@@ -17,7 +17,7 @@ export default function AdminFormEditScreen() {
 
   if (isLoading) {
     return (
-      <ScreenWrapper>
+      <ScreenWrapper safeBottom={false}>
         <View style={[styles.center, { backgroundColor: colors.background }]}>
           <ActivityIndicator color={colors.primary} />
         </View>
