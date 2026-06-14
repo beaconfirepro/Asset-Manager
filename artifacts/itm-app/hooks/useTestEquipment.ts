@@ -81,7 +81,7 @@ export function useCreateEquipment() {
       const record: NewTestEquipment = {
         id: eqId,
         org_id: orgId,
-        calibration_status: "VALID",
+        calibration_status: "OVERDUE",
         last_calibration_at: null,
         next_calibration_at: null,
         ...data,

@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getDb } from "@/db/client";
 import { systemTests, type SystemTest, type NewSystemTest } from "@/db/schema";
 import { enqueue, genId } from "@/lib/sync";
+import { computeTestResult } from "@/lib/testScoring";
 
 export function useSystemTests() {
   const { orgId } = useAuth();
@@ -40,8 +41,9 @@ export function useSystemTestsByAsset(hubspotAssetId: string | undefined) {
 type CreateTestInput = {
   hubspot_asset_id: string;
   compliance_standard_id?: string | null;
+  compliance_standard_code?: string | null;
   test_type: string;
-  result: "PASS" | "FAIL" | "INCONCLUSIVE";
+  result?: "PASS" | "FAIL" | "INCONCLUSIVE";
   readings?: string | null;
   notes?: string | null;
   tested_at: string;
@@ -57,11 +59,24 @@ export function useCreateTest() {
       const db = await getDb();
       const testId = genId();
       const now = new Date().toISOString();
+
+      const scoring = computeTestResult(
+        data.compliance_standard_code ?? null,
+        data.test_type,
+        data.readings ?? null,
+      );
+      const derivedResult = scoring.criteriaApplied
+        ? scoring.result
+        : (data.result ?? "INCONCLUSIVE");
+
+      const { compliance_standard_code: _code, result: _manualResult, ...rest } = data;
+
       const record: NewSystemTest = {
         id: testId,
         org_id: orgId,
         inspector_id: session?.user.id ?? "unknown",
-        ...data,
+        ...rest,
+        result: derivedResult,
         created_at: now,
         updated_at: now,
         sync_status: "PENDING",
