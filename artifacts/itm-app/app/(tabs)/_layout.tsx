@@ -32,6 +32,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "doc.text", selected: "doc.text.fill" }} />
         <Label>Reports</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="testing">
+        <Icon sf={{ default: "flask", selected: "flask.fill" }} />
+        <Label>Testing</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -134,6 +138,19 @@ function ClassicTabLayout() {
               <SymbolView name="doc.text" tintColor={color} size={24} />
             ) : (
               <Feather name="file-text" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="testing"
+        options={{
+          title: "Testing",
+          headerShown: false,
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="flask" tintColor={color} size={24} />
+            ) : (
+              <Feather name="activity" size={22} color={color} />
             ),
         }}
       />

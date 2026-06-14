@@ -136,7 +136,7 @@ export function useDashboard() {
             type: "EXPIRING_CALIBRATION",
             title: e.calibration_status === "DUE_SOON" ? "Calibration Due Soon" : "Calibration Expired",
             subtitle: `${e.name}${e.serial_number ? " · " + e.serial_number : ""}`,
-            href: "/assets",
+            href: "/testing",
             severity: e.calibration_status === "DUE_SOON" ? "medium" : "high",
           });
         });
