@@ -3,45 +3,45 @@ import { and, eq } from "drizzle-orm";
 import { useAuth } from "@/context/AuthContext";
 import { getDb } from "@/db/client";
 import {
-  inspectionSeries,
+  inspectionContracts,
   type InspectionSchedule,
-  type InspectionSeries,
-  type NewInspectionSeries,
+  type InspectionContract,
+  type NewInspectionContract,
 } from "@/db/schema";
 import { enqueue, genId } from "@/lib/sync";
-import { reconcileSchedules, reconcileSchedulesCloud } from "@/lib/series/scheduleReconciler";
+import { reconcileSchedules, reconcileSchedulesCloud } from "@/lib/contracts/scheduleReconciler";
 import { cloudDelete, cloudList, cloudUpsert, isWeb } from "@/lib/cloud/repo";
 
-export function useInspectionSeries() {
+export function useInspectionContracts() {
   const { orgId } = useAuth();
 
   return useQuery({
-    queryKey: ["inspection-series", orgId],
+    queryKey: ["inspection-contract", orgId],
     enabled: !!orgId,
-    queryFn: async (): Promise<InspectionSeries[]> => {
+    queryFn: async (): Promise<InspectionContract[]> => {
       if (!orgId) return [];
-      if (isWeb) return cloudList<InspectionSeries>("inspection_series", orgId);
+      if (isWeb) return cloudList<InspectionContract>("inspection_contracts", orgId);
       const db = await getDb();
-      return db.select().from(inspectionSeries).where(eq(inspectionSeries.org_id, orgId));
+      return db.select().from(inspectionContracts).where(eq(inspectionContracts.org_id, orgId));
     },
     staleTime: 2 * 60_000,
   });
 }
 
-type CreateSeriesInput = Omit<NewInspectionSeries, "id" | "org_id" | "created_at" | "updated_at" | "sync_status">;
+type CreateContractInput = Omit<NewInspectionContract, "id" | "org_id" | "created_at" | "updated_at" | "sync_status">;
 
-export function useCreateSeries() {
+export function useCreateContract() {
   const { orgId } = useAuth();
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: CreateSeriesInput): Promise<string | undefined> => {
+    mutationFn: async (data: CreateContractInput): Promise<string | undefined> => {
       if (!orgId) return;
       const now = new Date().toISOString();
-      const seriesId = genId();
+      const contractId = genId();
 
-      const newSeries: InspectionSeries = {
-        id: seriesId,
+      const newContract: InspectionContract = {
+        id: contractId,
         org_id: orgId,
         name: data.name,
         hubspot_asset_id: data.hubspot_asset_id,
@@ -60,54 +60,54 @@ export function useCreateSeries() {
       };
 
       if (isWeb) {
-        await cloudUpsert<InspectionSeries>("inspection_series", newSeries);
-        await reconcileSchedulesCloud(orgId, newSeries);
-        return seriesId;
+        await cloudUpsert<InspectionContract>("inspection_contracts", newContract);
+        await reconcileSchedulesCloud(orgId, newContract);
+        return contractId;
       }
 
       const db = await getDb();
-      await db.insert(inspectionSeries).values(newSeries);
+      await db.insert(inspectionContracts).values(newContract);
       await enqueue({
         org_id: orgId,
-        entity_type: "inspection_series",
-        entity_id: seriesId,
+        entity_type: "inspection_contracts",
+        entity_id: contractId,
         operation: "CREATE",
-        payload: newSeries as unknown as Record<string, unknown>,
+        payload: newContract as unknown as Record<string, unknown>,
         target_provider: "ITM",
       });
 
-      await reconcileSchedules(db, orgId, newSeries);
+      await reconcileSchedules(db, orgId, newContract);
 
-      return seriesId;
+      return contractId;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["inspection-series", orgId] });
+      qc.invalidateQueries({ queryKey: ["inspection-contract", orgId] });
       qc.invalidateQueries({ queryKey: ["inspection-schedules", orgId] });
       qc.invalidateQueries({ queryKey: ["dashboard", orgId] });
     },
   });
 }
 
-export function useUpdateSeries() {
+export function useUpdateContract() {
   const { orgId } = useAuth();
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: { id: string; data: Partial<InspectionSeries> }) => {
+    mutationFn: async (params: { id: string; data: Partial<InspectionContract> }) => {
       if (!orgId) return;
       const now = new Date().toISOString();
 
       if (isWeb) {
-        const all = await cloudList<InspectionSeries>("inspection_series", orgId);
+        const all = await cloudList<InspectionContract>("inspection_contracts", orgId);
         const current = all.find((s) => s.id === params.id);
         if (!current) return;
-        const merged: InspectionSeries = {
+        const merged: InspectionContract = {
           ...current,
           ...params.data,
           updated_at: now,
           sync_status: "SYNCED",
         };
-        await cloudUpsert<InspectionSeries>("inspection_series", merged);
+        await cloudUpsert<InspectionContract>("inspection_contracts", merged);
         await reconcileSchedulesCloud(orgId, merged);
         return;
       }
@@ -115,13 +115,13 @@ export function useUpdateSeries() {
       const db = await getDb();
 
       await db
-        .update(inspectionSeries)
+        .update(inspectionContracts)
         .set({ ...params.data, updated_at: now, sync_status: "PENDING" })
-        .where(and(eq(inspectionSeries.id, params.id), eq(inspectionSeries.org_id, orgId)));
+        .where(and(eq(inspectionContracts.id, params.id), eq(inspectionContracts.org_id, orgId)));
 
       await enqueue({
         org_id: orgId,
-        entity_type: "inspection_series",
+        entity_type: "inspection_contracts",
         entity_id: params.id,
         operation: "UPDATE",
         payload: params.data as Record<string, unknown>,
@@ -130,26 +130,26 @@ export function useUpdateSeries() {
 
       const rows = await db
         .select()
-        .from(inspectionSeries)
-        .where(and(eq(inspectionSeries.id, params.id), eq(inspectionSeries.org_id, orgId)));
+        .from(inspectionContracts)
+        .where(and(eq(inspectionContracts.id, params.id), eq(inspectionContracts.org_id, orgId)));
       if (rows[0]) {
         await reconcileSchedules(db, orgId, rows[0]);
       }
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["inspection-series", orgId] });
+      qc.invalidateQueries({ queryKey: ["inspection-contract", orgId] });
       qc.invalidateQueries({ queryKey: ["inspection-schedules", orgId] });
       qc.invalidateQueries({ queryKey: ["dashboard", orgId] });
     },
   });
 }
 
-export function useDeleteSeries() {
+export function useDeleteContract() {
   const { orgId } = useAuth();
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async (seriesId: string) => {
+    mutationFn: async (contractId: string) => {
       if (!orgId) return;
       const now = new Date().toISOString();
       const todayIso = now.slice(0, 10);
@@ -157,7 +157,7 @@ export function useDeleteSeries() {
       if (isWeb) {
         const allSched = await cloudList<InspectionSchedule>("inspection_schedules", orgId);
         const future = allSched.filter(
-          (s) => s.series_id === seriesId && s.scheduled_date >= todayIso,
+          (s) => s.contract_id === contractId && s.scheduled_date >= todayIso,
         );
         for (const sched of future) {
           await cloudUpsert<InspectionSchedule>("inspection_schedules", {
@@ -167,7 +167,7 @@ export function useDeleteSeries() {
             sync_status: "SYNCED",
           });
         }
-        await cloudDelete("inspection_series", seriesId, orgId);
+        await cloudDelete("inspection_contracts", contractId, orgId);
         return;
       }
 
@@ -177,7 +177,7 @@ export function useDeleteSeries() {
       const schedules = await db
         .select()
         .from(schedTable)
-        .where(and(eq(schedTable.org_id, orgId), eq(schedTable.series_id, seriesId)));
+        .where(and(eq(schedTable.org_id, orgId), eq(schedTable.contract_id, contractId)));
 
       for (const sched of schedules.filter((s) => s.scheduled_date >= todayIso)) {
         await db
@@ -196,19 +196,19 @@ export function useDeleteSeries() {
 
       await enqueue({
         org_id: orgId,
-        entity_type: "inspection_series",
-        entity_id: seriesId,
+        entity_type: "inspection_contracts",
+        entity_id: contractId,
         operation: "DELETE",
-        payload: { id: seriesId },
+        payload: { id: contractId },
         target_provider: "ITM",
       });
 
       await db
-        .delete(inspectionSeries)
-        .where(and(eq(inspectionSeries.id, seriesId), eq(inspectionSeries.org_id, orgId)));
+        .delete(inspectionContracts)
+        .where(and(eq(inspectionContracts.id, contractId), eq(inspectionContracts.org_id, orgId)));
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["inspection-series", orgId] });
+      qc.invalidateQueries({ queryKey: ["inspection-contract", orgId] });
       qc.invalidateQueries({ queryKey: ["inspection-schedules", orgId] });
       qc.invalidateQueries({ queryKey: ["dashboard", orgId] });
     },

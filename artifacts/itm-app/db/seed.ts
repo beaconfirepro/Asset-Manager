@@ -72,14 +72,14 @@ export async function seedDatabase(): Promise<void> {
     { id: aclExempt, org_id: ORG, hubspot_asset_id: "hs_asset_004", compliance_standard_id: csSuppression, compliance_status: "EXEMPT", last_inspection_at: null, next_inspection_at: null, notes: "Asset decommissioned — exempt from compliance schedule", created_at: now, updated_at: now, sync_status: "SYNCED" },
   ]);
 
-  const seriesSprinkler = id("is");
-  const seriesAlarm = id("is");
-  const seriesKitchen = id("is");
+  const contractSprinkler = id("is");
+  const contractAlarm = id("is");
+  const contractKitchen = id("is");
 
-  await db.insert(schema.inspectionSeries).values([
-    { id: seriesSprinkler, org_id: ORG, name: "Annual Sprinkler Inspection Series", hubspot_asset_id: "hs_asset_001", system_type: "FIRE_SPRINKLER", frequency_days: 365, generation_horizon_days: 180, starts_at: daysAgo(400), ends_at: null, hubspot_service_team_id: "team_001", is_booked: true, contracted_amount: 1800.00, notes: null, created_at: now, updated_at: now, sync_status: "SYNCED" },
-    { id: seriesAlarm, org_id: ORG, name: "Semi-Annual Alarm Inspection", hubspot_asset_id: "hs_asset_003", system_type: "FIRE_ALARM", frequency_days: 180, generation_horizon_days: 90, starts_at: daysAgo(200), ends_at: null, hubspot_service_team_id: "team_002", is_booked: false, contracted_amount: 950.00, notes: null, created_at: now, updated_at: now, sync_status: "SYNCED" },
-    { id: seriesKitchen, org_id: ORG, name: "Quarterly Kitchen Hood Inspection", hubspot_asset_id: "hs_asset_002", system_type: "KITCHEN_HOOD", frequency_days: 90, generation_horizon_days: 60, starts_at: daysAgo(300), ends_at: null, hubspot_service_team_id: null, is_booked: true, contracted_amount: 450.00, notes: "NFPA 96 quarterly requirement", created_at: now, updated_at: now, sync_status: "SYNCED" },
+  await db.insert(schema.inspectionContracts).values([
+    { id: contractSprinkler, org_id: ORG, name: "Annual Sprinkler Inspection Contract", hubspot_asset_id: "hs_asset_001", system_type: "FIRE_SPRINKLER", frequency_days: 365, generation_horizon_days: 180, starts_at: daysAgo(400), ends_at: null, hubspot_service_team_id: "team_001", is_booked: true, contracted_amount: 1800.00, notes: null, created_at: now, updated_at: now, sync_status: "SYNCED" },
+    { id: contractAlarm, org_id: ORG, name: "Semi-Annual Alarm Inspection", hubspot_asset_id: "hs_asset_003", system_type: "FIRE_ALARM", frequency_days: 180, generation_horizon_days: 90, starts_at: daysAgo(200), ends_at: null, hubspot_service_team_id: "team_002", is_booked: false, contracted_amount: 950.00, notes: null, created_at: now, updated_at: now, sync_status: "SYNCED" },
+    { id: contractKitchen, org_id: ORG, name: "Quarterly Kitchen Hood Inspection", hubspot_asset_id: "hs_asset_002", system_type: "KITCHEN_HOOD", frequency_days: 90, generation_horizon_days: 60, starts_at: daysAgo(300), ends_at: null, hubspot_service_team_id: null, is_booked: true, contracted_amount: 450.00, notes: "NFPA 96 quarterly requirement", created_at: now, updated_at: now, sync_status: "SYNCED" },
   ]);
 
   const schedDraft = id("sch");
@@ -91,13 +91,13 @@ export async function seedDatabase(): Promise<void> {
   const schedVoid = id("sch");
 
   await db.insert(schema.inspectionSchedules).values([
-    { id: schedDraft, org_id: ORG, series_id: seriesSprinkler, hubspot_asset_id: "hs_asset_001", scheduled_date: daysFromNow(60), status: "DRAFT", hubspot_inspection_ticket_id: null, rescheduled_from: null, notes: "Next annual inspection", created_at: now, updated_at: now, sync_status: "PENDING" },
-    { id: schedInProgress, org_id: ORG, series_id: seriesAlarm, hubspot_asset_id: "hs_asset_003", scheduled_date: nowIso().slice(0, 10), status: "IN_PROGRESS", hubspot_inspection_ticket_id: "hs_ticket_002", rescheduled_from: null, notes: null, created_at: now, updated_at: now, sync_status: "SYNCED" },
-    { id: schedSubmitted, org_id: ORG, series_id: seriesKitchen, hubspot_asset_id: "hs_asset_002", scheduled_date: daysAgo(3), status: "SUBMITTED", hubspot_inspection_ticket_id: "hs_ticket_003", rescheduled_from: null, notes: "Awaiting QA review", created_at: now, updated_at: now, sync_status: "SYNCED" },
-    { id: schedQaReview, org_id: ORG, series_id: seriesSprinkler, hubspot_asset_id: "hs_asset_001", scheduled_date: daysAgo(7), status: "QA_REVIEW", hubspot_inspection_ticket_id: "hs_ticket_004", rescheduled_from: null, notes: "Reviewer assigned", created_at: now, updated_at: now, sync_status: "SYNCED" },
-    { id: schedApproved, org_id: ORG, series_id: seriesAlarm, hubspot_asset_id: "hs_asset_003", scheduled_date: daysAgo(14), status: "APPROVED", hubspot_inspection_ticket_id: "hs_ticket_005", rescheduled_from: null, notes: null, created_at: now, updated_at: now, sync_status: "SYNCED" },
-    { id: schedCompleted, org_id: ORG, series_id: seriesSprinkler, hubspot_asset_id: "hs_asset_001", scheduled_date: daysAgo(30), status: "COMPLETED", hubspot_inspection_ticket_id: "hs_ticket_006", rescheduled_from: null, notes: "Report delivered to customer", created_at: now, updated_at: now, sync_status: "SYNCED" },
-    { id: schedVoid, org_id: ORG, series_id: seriesKitchen, hubspot_asset_id: "hs_asset_002", scheduled_date: daysAgo(90), status: "VOID", hubspot_inspection_ticket_id: null, rescheduled_from: null, notes: "Customer cancelled — rescheduled", created_at: now, updated_at: now, sync_status: "SYNCED" },
+    { id: schedDraft, org_id: ORG, contract_id: contractSprinkler, hubspot_asset_id: "hs_asset_001", scheduled_date: daysFromNow(60), status: "DRAFT", hubspot_inspection_ticket_id: null, rescheduled_from: null, notes: "Next annual inspection", created_at: now, updated_at: now, sync_status: "PENDING" },
+    { id: schedInProgress, org_id: ORG, contract_id: contractAlarm, hubspot_asset_id: "hs_asset_003", scheduled_date: nowIso().slice(0, 10), status: "IN_PROGRESS", hubspot_inspection_ticket_id: "hs_ticket_002", rescheduled_from: null, notes: null, created_at: now, updated_at: now, sync_status: "SYNCED" },
+    { id: schedSubmitted, org_id: ORG, contract_id: contractKitchen, hubspot_asset_id: "hs_asset_002", scheduled_date: daysAgo(3), status: "SUBMITTED", hubspot_inspection_ticket_id: "hs_ticket_003", rescheduled_from: null, notes: "Awaiting QA review", created_at: now, updated_at: now, sync_status: "SYNCED" },
+    { id: schedQaReview, org_id: ORG, contract_id: contractSprinkler, hubspot_asset_id: "hs_asset_001", scheduled_date: daysAgo(7), status: "QA_REVIEW", hubspot_inspection_ticket_id: "hs_ticket_004", rescheduled_from: null, notes: "Reviewer assigned", created_at: now, updated_at: now, sync_status: "SYNCED" },
+    { id: schedApproved, org_id: ORG, contract_id: contractAlarm, hubspot_asset_id: "hs_asset_003", scheduled_date: daysAgo(14), status: "APPROVED", hubspot_inspection_ticket_id: "hs_ticket_005", rescheduled_from: null, notes: null, created_at: now, updated_at: now, sync_status: "SYNCED" },
+    { id: schedCompleted, org_id: ORG, contract_id: contractSprinkler, hubspot_asset_id: "hs_asset_001", scheduled_date: daysAgo(30), status: "COMPLETED", hubspot_inspection_ticket_id: "hs_ticket_006", rescheduled_from: null, notes: "Report delivered to customer", created_at: now, updated_at: now, sync_status: "SYNCED" },
+    { id: schedVoid, org_id: ORG, contract_id: contractKitchen, hubspot_asset_id: "hs_asset_002", scheduled_date: daysAgo(90), status: "VOID", hubspot_inspection_ticket_id: null, rescheduled_from: null, notes: "Customer cancelled — rescheduled", created_at: now, updated_at: now, sync_status: "SYNCED" },
   ]);
 
   const formSchema = JSON.stringify({

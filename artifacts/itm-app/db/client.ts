@@ -62,11 +62,11 @@ CREATE TABLE IF NOT EXISTS asset_compliance_links (
 );
 CREATE INDEX IF NOT EXISTS idx_acl_org ON asset_compliance_links(org_id);
 
-CREATE TABLE IF NOT EXISTS inspection_series (
-  ${BASE_COLS("inspection_series")},
+CREATE TABLE IF NOT EXISTS inspection_contracts (
+  ${BASE_COLS("inspection_contracts")},
   name TEXT NOT NULL,
   hubspot_asset_id TEXT NOT NULL,
-  system_type TEXT NOT NULL CHECK (inspection_series.system_type IN (${SYSTEM_TYPES})),
+  system_type TEXT NOT NULL CHECK (inspection_contracts.system_type IN (${SYSTEM_TYPES})),
   frequency_days INTEGER NOT NULL,
   generation_horizon_days INTEGER NOT NULL DEFAULT 180,
   starts_at TEXT NOT NULL,
@@ -76,11 +76,11 @@ CREATE TABLE IF NOT EXISTS inspection_series (
   contracted_amount REAL,
   notes TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_is_org ON inspection_series(org_id);
+CREATE INDEX IF NOT EXISTS idx_is_org ON inspection_contracts(org_id);
 
 CREATE TABLE IF NOT EXISTS inspection_schedules (
   ${BASE_COLS("inspection_schedules")},
-  series_id TEXT NOT NULL,
+  contract_id TEXT NOT NULL,
   hubspot_asset_id TEXT NOT NULL,
   scheduled_date TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'DRAFT'

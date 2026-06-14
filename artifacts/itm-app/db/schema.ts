@@ -112,7 +112,7 @@ export const assetComplianceLinks = sqliteTable("asset_compliance_links", {
 export type AssetComplianceLink = typeof assetComplianceLinks.$inferSelect;
 export type NewAssetComplianceLink = typeof assetComplianceLinks.$inferInsert;
 
-export const inspectionSeries = sqliteTable("inspection_series", {
+export const inspectionContracts = sqliteTable("inspection_contracts", {
   ...baseColumns(),
   name: text("name").notNull(),
   hubspot_asset_id: text("hubspot_asset_id").notNull(),
@@ -126,12 +126,12 @@ export const inspectionSeries = sqliteTable("inspection_series", {
   contracted_amount: real("contracted_amount"),
   notes: text("notes"),
 });
-export type InspectionSeries = typeof inspectionSeries.$inferSelect;
-export type NewInspectionSeries = typeof inspectionSeries.$inferInsert;
+export type InspectionContract = typeof inspectionContracts.$inferSelect;
+export type NewInspectionContract = typeof inspectionContracts.$inferInsert;
 
 export const inspectionSchedules = sqliteTable("inspection_schedules", {
   ...baseColumns(),
-  series_id: text("series_id").notNull(),
+  contract_id: text("contract_id").notNull(),
   hubspot_asset_id: text("hubspot_asset_id").notNull(),
   scheduled_date: text("scheduled_date").notNull(),
   status: text("status").notNull().default("DRAFT"),

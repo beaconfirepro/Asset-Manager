@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import React from "react";
 import { useColors } from "@/hooks/useColors";
 
-export default function SeriesLayout() {
+export default function ContractLayout() {
   const colors = useColors();
   return (
     <Stack

@@ -15,7 +15,7 @@ import {
   inspectionReports,
   inspectionResults,
   inspectionSchedules,
-  inspectionSeries,
+  inspectionContracts,
   integrationConnections,
   maintenanceRecords,
   syncOutboxItems,
@@ -31,7 +31,7 @@ const router: IRouter = Router();
 const TABLES: Record<string, PgTable> = {
   compliance_standards: complianceStandards,
   asset_compliance_links: assetComplianceLinks,
-  inspection_series: inspectionSeries,
+  inspection_contracts: inspectionContracts,
   inspection_schedules: inspectionSchedules,
   inspection_forms: inspectionForms,
   inspection_results: inspectionResults,

@@ -11,7 +11,7 @@ import {
 import { useColors } from "@/hooks/useColors";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import type { InspectionSeries } from "@/db/schema";
+import type { InspectionContract } from "@/db/schema";
 
 const SYSTEM_TYPES = [
   "FIRE_SPRINKLER",
@@ -32,8 +32,8 @@ const FREQUENCIES = [
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (data: Omit<InspectionSeries, "id" | "org_id" | "created_at" | "updated_at" | "sync_status">) => Promise<void>;
-  initialValues?: Partial<InspectionSeries>;
+  onSubmit: (data: Omit<InspectionContract, "id" | "org_id" | "created_at" | "updated_at" | "sync_status">) => Promise<void>;
+  initialValues?: Partial<InspectionContract>;
   mode?: "create" | "edit";
   assetOptions?: { id: string; name: string }[];
 };
@@ -74,7 +74,7 @@ function LabeledInput({
   );
 }
 
-export function InspectionSeriesFormModal({
+export function InspectionContractFormModal({
   visible,
   onClose,
   onSubmit,

@@ -15,16 +15,16 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { and, eq } from "drizzle-orm";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
-import { useInspectionSeries, useUpdateSeries, useDeleteSeries } from "@/hooks/useInspectionSeries";
+import { useInspectionContracts, useUpdateContract, useDeleteContract } from "@/hooks/useInspectionContracts";
 import { useInspectionSchedules, useRescheduleVisit } from "@/hooks/useInspectionSchedules";
 import { useAssets } from "@/hooks/useAssets";
-import { InspectionSeriesFormModal } from "@/components/series/InspectionSeriesFormModal";
-import { RescheduleModal } from "@/components/series/RescheduleModal";
+import { InspectionContractFormModal } from "@/components/contracts/InspectionContractFormModal";
+import { RescheduleModal } from "@/components/contracts/RescheduleModal";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { SystemTypeBadge } from "@/components/assets/SystemTypeBadge";
-import type { InspectionSchedule, InspectionSeries } from "@/db/schema";
+import type { InspectionSchedule, InspectionContract } from "@/db/schema";
 
 function freqLabel(days: number) {
   if (days === 30) return "Monthly";
@@ -101,7 +101,7 @@ function ScheduleRow({
   );
 }
 
-export default function SeriesDetailScreen() {
+export default function ContractDetailScreen() {
   const colors = useColors();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -109,15 +109,15 @@ export default function SeriesDetailScreen() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [rescheduleTarget, setRescheduleTarget] = useState<InspectionSchedule | null>(null);
 
-  const { data: allSeries = [], isLoading: seriesLoading, refetch } = useInspectionSeries();
+  const { data: allContract = [], isLoading: contractLoading, refetch } = useInspectionContracts();
   const { data: schedules = [], isLoading: schLoading } = useInspectionSchedules(id);
   const { data: assets = [] } = useAssets();
   const assetOptions = assets.map((a) => ({ id: a.id, name: a.name }));
-  const updateSeries = useUpdateSeries();
-  const deleteSeries = useDeleteSeries();
+  const updateContract = useUpdateContract();
+  const deleteContract = useDeleteContract();
   const rescheduleVisit = useRescheduleVisit();
 
-  const series = allSeries.find((s) => s.id === id);
+  const contract = allContract.find((s) => s.id === id);
 
   const sorted = useMemo(
     () => [...schedules].sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date)),
@@ -128,7 +128,7 @@ export default function SeriesDetailScreen() {
   const future = sorted.filter((s) => s.scheduled_date >= today && s.status !== "CANCELLED");
   const past = sorted.filter((s) => s.scheduled_date < today || s.status === "CANCELLED");
 
-  const isLoading = seriesLoading || schLoading;
+  const isLoading = contractLoading || schLoading;
 
   if (isLoading) {
     return (
@@ -138,7 +138,7 @@ export default function SeriesDetailScreen() {
     );
   }
 
-  if (!series) {
+  if (!contract) {
     return (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
         <Text style={{ color: colors.mutedForeground }}>Contract not found.</Text>
@@ -156,7 +156,7 @@ export default function SeriesDetailScreen() {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
-            await deleteSeries.mutateAsync(series.id);
+            await deleteContract.mutateAsync(contract.id);
             router.back();
           },
         },
@@ -182,10 +182,10 @@ export default function SeriesDetailScreen() {
         <CardContent>
           <View style={styles.heroTop}>
             <View style={styles.heroTitle}>
-              <Text style={[styles.name, { color: colors.foreground }]}>{series.name}</Text>
+              <Text style={[styles.name, { color: colors.foreground }]}>{contract.name}</Text>
               <Badge
-                label={series.is_booked ? "Booked" : "Unbooked"}
-                variant={series.is_booked ? "success" : "muted"}
+                label={contract.is_booked ? "Booked" : "Unbooked"}
+                variant={contract.is_booked ? "success" : "muted"}
               />
             </View>
             <View style={styles.heroActions}>
@@ -198,21 +198,21 @@ export default function SeriesDetailScreen() {
             </View>
           </View>
 
-          <SystemTypeBadge systemType={series.system_type} />
+          <SystemTypeBadge systemType={contract.system_type} />
 
           <View style={styles.infoGrid}>
             {[
-              { label: "Frequency", value: freqLabel(series.frequency_days) },
-              { label: "Asset ID", value: series.hubspot_asset_id },
-              { label: "Starts", value: series.starts_at.slice(0, 10) },
-              { label: "Ends", value: series.ends_at?.slice(0, 10) ?? "Ongoing" },
+              { label: "Frequency", value: freqLabel(contract.frequency_days) },
+              { label: "Asset ID", value: contract.hubspot_asset_id },
+              { label: "Starts", value: contract.starts_at.slice(0, 10) },
+              { label: "Ends", value: contract.ends_at?.slice(0, 10) ?? "Ongoing" },
               {
                 label: "Contracted",
-                value: series.contracted_amount != null
-                  ? `$${series.contracted_amount.toLocaleString()}`
+                value: contract.contracted_amount != null
+                  ? `$${contract.contracted_amount.toLocaleString()}`
                   : "—",
               },
-              { label: "Horizon", value: `${series.generation_horizon_days} days` },
+              { label: "Horizon", value: `${contract.generation_horizon_days} days` },
             ].map((row) => (
               <View key={row.label} style={styles.infoRow}>
                 <Text style={[styles.infoLabel, { color: colors.mutedForeground }]}>{row.label}</Text>
@@ -221,8 +221,8 @@ export default function SeriesDetailScreen() {
             ))}
           </View>
 
-          {series.notes ? (
-            <Text style={[styles.notes, { color: colors.mutedForeground }]}>{series.notes}</Text>
+          {contract.notes ? (
+            <Text style={[styles.notes, { color: colors.mutedForeground }]}>{contract.notes}</Text>
           ) : null}
         </CardContent>
       </Card>
@@ -254,14 +254,14 @@ export default function SeriesDetailScreen() {
         </Card>
       )}
 
-      <InspectionSeriesFormModal
+      <InspectionContractFormModal
         visible={showEditModal}
         onClose={() => setShowEditModal(false)}
         mode="edit"
-        initialValues={series}
+        initialValues={contract}
         assetOptions={assetOptions}
         onSubmit={async (data) => {
-          await updateSeries.mutateAsync({ id: series.id, data });
+          await updateContract.mutateAsync({ id: contract.id, data });
         }}
       />
 
@@ -274,7 +274,7 @@ export default function SeriesDetailScreen() {
           onConfirm={async (newDate, reason) => {
             await rescheduleVisit.mutateAsync({
               scheduleId: rescheduleTarget.id,
-              seriesId: series.id,
+              contractId: contract.id,
               oldDate: rescheduleTarget.scheduled_date.slice(0, 10),
               newDate,
               reason,

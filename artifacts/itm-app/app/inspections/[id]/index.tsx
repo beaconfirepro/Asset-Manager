@@ -21,7 +21,7 @@ import { useInspectionResult, usePreviousInspection, useStartInspection, useSave
 import { useOutboxConflicts, useRetryOutboxItem } from "@/hooks/useSync";
 import { useActiveForm } from "@/hooks/useInspectionForms";
 import { useInspectionSchedules } from "@/hooks/useInspectionSchedules";
-import { useInspectionSeries } from "@/hooks/useInspectionSeries";
+import { useInspectionContracts } from "@/hooks/useInspectionContracts";
 import { OfflineSyncIndicator } from "@/components/inspections/OfflineSyncIndicator";
 import { QuestionSetRenderer } from "@/components/inspections/QuestionSetRenderer";
 import { AiSuggestionPanel } from "@/components/ai/AiSuggestionPanel";
@@ -49,14 +49,14 @@ export default function InspectionWorkspaceScreen() {
   const [showCodeRef, setShowCodeRef] = useState(false);
 
   const { data: allSchedules = [] } = useInspectionSchedules();
-  const { data: allSeries = [] } = useInspectionSeries();
+  const { data: allContract = [] } = useInspectionContracts();
   const { data: existingResult, isLoading: resultLoading } = useInspectionResult(scheduleId);
 
   const schedule = allSchedules.find((s) => s.id === scheduleId);
-  const series = allSeries.find((s) => s.id === schedule?.series_id);
+  const contract = allContract.find((s) => s.id === schedule?.contract_id);
   const { data: previousResult } = usePreviousInspection(schedule?.hubspot_asset_id);
 
-  const { data: activeForm, isLoading: formLoading } = useActiveForm(series?.system_type);
+  const { data: activeForm, isLoading: formLoading } = useActiveForm(contract?.system_type);
 
   const startInspection = useStartInspection();
   const saveAnswer = useSaveAnswer();
@@ -309,7 +309,7 @@ export default function InspectionWorkspaceScreen() {
         <Feather name="alert-circle" size={40} color={colors.warning} />
         <Text style={[styles.loadingText, { color: colors.foreground }]}>No active form</Text>
         <Text style={[styles.subText, { color: colors.mutedForeground }]}>
-          No active inspection form found for this system type ({series?.system_type ?? "unknown"}).
+          No active inspection form found for this system type ({contract?.system_type ?? "unknown"}).
           Please ask an admin to activate a form.
         </Text>
         <Button label="Go Back" variant="outline" onPress={() => router.back()} style={{ marginTop: 16 }} />
@@ -329,7 +329,7 @@ export default function InspectionWorkspaceScreen() {
             {schema.title ?? activeForm.name}
           </Text>
           <Text style={[styles.headerSubtitle, { color: colors.mutedForeground }]} numberOfLines={1}>
-            {schedule?.scheduled_date ?? ""} · {series?.system_type?.replace(/_/g, " ") ?? ""}
+            {schedule?.scheduled_date ?? ""} · {contract?.system_type?.replace(/_/g, " ") ?? ""}
           </Text>
         </View>
 

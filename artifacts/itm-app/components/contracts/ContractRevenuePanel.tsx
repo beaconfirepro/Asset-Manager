@@ -2,21 +2,21 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useColors } from "@/hooks/useColors";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import type { InspectionSeries } from "@/db/schema";
+import type { InspectionContract } from "@/db/schema";
 
 type Props = {
-  series: InspectionSeries[];
+  contract: InspectionContract[];
 };
 
 function fmt(n: number) {
   return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export function SeriesRevenuePanel({ series }: Props) {
+export function ContractRevenuePanel({ contract }: Props) {
   const colors = useColors();
 
-  const booked = series.filter((s) => s.is_booked && s.contracted_amount);
-  const unbooked = series.filter((s) => !s.is_booked && s.contracted_amount);
+  const booked = contract.filter((s) => s.is_booked && s.contracted_amount);
+  const unbooked = contract.filter((s) => !s.is_booked && s.contracted_amount);
 
   const bookedTotal = booked.reduce((acc, s) => acc + (s.contracted_amount ?? 0), 0);
   const unbookedTotal = unbooked.reduce((acc, s) => acc + (s.contracted_amount ?? 0), 0);
@@ -26,7 +26,7 @@ export function SeriesRevenuePanel({ series }: Props) {
 
   return (
     <Card>
-      <CardHeader title="Revenue Summary" subtitle={`${series.length} contracts total`} />
+      <CardHeader title="Revenue Summary" subtitle={`${contract.length} contracts total`} />
       <CardContent>
         <View style={styles.row}>
           <View style={styles.col}>
@@ -59,8 +59,8 @@ export function SeriesRevenuePanel({ series }: Props) {
             </Text>
             {booked.map((s) => (
               <View key={s.id} style={[styles.tableRow, { borderBottomColor: colors.border }]}>
-                <Text style={[styles.seriesName, { color: colors.foreground }]} numberOfLines={1}>{s.name}</Text>
-                <Text style={[styles.seriesAmt, { color: colors.success }]}>{fmt(s.contracted_amount ?? 0)}</Text>
+                <Text style={[styles.contractName, { color: colors.foreground }]} numberOfLines={1}>{s.name}</Text>
+                <Text style={[styles.contractAmt, { color: colors.success }]}>{fmt(s.contracted_amount ?? 0)}</Text>
               </View>
             ))}
           </View>
@@ -96,6 +96,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderBottomWidth: 1,
   },
-  seriesName: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", marginRight: 8 },
-  seriesAmt: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  contractName: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", marginRight: 8 },
+  contractAmt: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
 });

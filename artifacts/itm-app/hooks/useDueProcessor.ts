@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Platform } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
-import { processDueSchedules } from "@/lib/series/dueProcessor";
+import { processDueSchedules } from "@/lib/contracts/dueProcessor";
 
 const INTERVAL_MS = 15 * 60_000;
 

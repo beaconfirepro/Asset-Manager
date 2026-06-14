@@ -6,27 +6,27 @@ import { inspectionSchedules, type InspectionSchedule } from "@/db/schema";
 import { cloudList, cloudUpsert, isWeb } from "@/lib/cloud/repo";
 import { enqueue } from "@/lib/sync";
 
-export function useInspectionSchedules(seriesId?: string) {
+export function useInspectionSchedules(contractId?: string) {
   const { orgId } = useAuth();
 
   return useQuery({
-    queryKey: ["inspection-schedules", orgId, seriesId ?? "all"],
+    queryKey: ["inspection-schedules", orgId, contractId ?? "all"],
     enabled: !!orgId,
     queryFn: async (): Promise<InspectionSchedule[]> => {
       if (!orgId) return [];
       if (isWeb) {
         const all = await cloudList<InspectionSchedule>("inspection_schedules", orgId);
-        return seriesId ? all.filter((s) => s.series_id === seriesId) : all;
+        return contractId ? all.filter((s) => s.contract_id === contractId) : all;
       }
       const db = await getDb();
-      if (seriesId) {
+      if (contractId) {
         return db
           .select()
           .from(inspectionSchedules)
           .where(
             and(
               eq(inspectionSchedules.org_id, orgId),
-              eq(inspectionSchedules.series_id, seriesId),
+              eq(inspectionSchedules.contract_id, contractId),
             ),
           );
       }
@@ -41,7 +41,7 @@ export function useInspectionSchedules(seriesId?: string) {
 
 type RescheduleParams = {
   scheduleId: string;
-  seriesId: string;
+  contractId: string;
   oldDate: string;
   newDate: string;
   reason?: string;
@@ -63,7 +63,7 @@ export function useRescheduleVisit() {
         const allCloud = await cloudList<InspectionSchedule>("inspection_schedules", orgId);
         const toShiftCloud = allCloud.filter(
           (s) =>
-            s.series_id === params.seriesId &&
+            s.contract_id === params.contractId &&
             s.scheduled_date >= params.oldDate &&
             s.status !== "CANCELLED",
         );
@@ -92,7 +92,7 @@ export function useRescheduleVisit() {
         .where(
           and(
             eq(inspectionSchedules.org_id, orgId),
-            eq(inspectionSchedules.series_id, params.seriesId),
+            eq(inspectionSchedules.contract_id, params.contractId),
           ),
         );
 

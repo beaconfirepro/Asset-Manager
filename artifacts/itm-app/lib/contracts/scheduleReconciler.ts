@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db/client";
-import { inspectionSchedules, type InspectionSchedule, type InspectionSeries } from "@/db/schema";
+import { inspectionSchedules, type InspectionSchedule, type InspectionContract } from "@/db/schema";
 import { getHubSpotConnector } from "@/lib/integrations/hubspot";
 import { cloudList, cloudUpsert } from "@/lib/cloud/repo";
 import { enqueue, genId } from "@/lib/sync";
@@ -11,13 +11,13 @@ type Db = Awaited<ReturnType<typeof getDb>>;
 export async function reconcileSchedules(
   db: Db,
   orgId: string,
-  series: InspectionSeries,
+  contract: InspectionContract,
 ): Promise<void> {
   const now = new Date().toISOString();
   const todayIso = now.slice(0, 10);
   const connector = getHubSpotConnector();
 
-  const targetDates = new Set(generateScheduleDates(series));
+  const targetDates = new Set(generateScheduleDates(contract));
 
   const existing = await db
     .select()
@@ -25,7 +25,7 @@ export async function reconcileSchedules(
     .where(
       and(
         eq(inspectionSchedules.org_id, orgId),
-        eq(inspectionSchedules.series_id, series.id),
+        eq(inspectionSchedules.contract_id, contract.id),
       ),
     );
 
@@ -65,8 +65,8 @@ export async function reconcileSchedules(
       await db.insert(inspectionSchedules).values({
         id: scheduleId,
         org_id: orgId,
-        series_id: series.id,
-        hubspot_asset_id: series.hubspot_asset_id,
+        contract_id: contract.id,
+        hubspot_asset_id: contract.hubspot_asset_id,
         scheduled_date: date,
         status: "DRAFT",
         hubspot_inspection_ticket_id: null,
@@ -84,8 +84,8 @@ export async function reconcileSchedules(
         operation: "CREATE",
         payload: {
           id: scheduleId,
-          series_id: series.id,
-          hubspot_asset_id: series.hubspot_asset_id,
+          contract_id: contract.id,
+          hubspot_asset_id: contract.hubspot_asset_id,
           scheduled_date: date,
         },
         target_provider: "ITM",
@@ -94,7 +94,7 @@ export async function reconcileSchedules(
       if (isDue) {
         const result = await connector.createInspectionTicket({
           org_id: orgId,
-          hubspot_asset_id: series.hubspot_asset_id,
+          hubspot_asset_id: contract.hubspot_asset_id,
           schedule_id: scheduleId,
           scheduled_date: date,
         });
@@ -131,15 +131,15 @@ export async function reconcileSchedules(
 // Mirrors reconcileSchedules but skips offline outbox + HubSpot ticket creation.
 export async function reconcileSchedulesCloud(
   orgId: string,
-  series: InspectionSeries,
+  contract: InspectionContract,
 ): Promise<void> {
   const now = new Date().toISOString();
   const todayIso = now.slice(0, 10);
 
-  const targetDates = new Set(generateScheduleDates(series));
+  const targetDates = new Set(generateScheduleDates(contract));
 
   const all = await cloudList<InspectionSchedule>("inspection_schedules", orgId);
-  const existing = all.filter((s) => s.series_id === series.id);
+  const existing = all.filter((s) => s.contract_id === contract.id);
 
   const existingDateMap = new Map(
     existing.map((s) => [s.scheduled_date.slice(0, 10), s]),
@@ -167,8 +167,8 @@ export async function reconcileSchedulesCloud(
       await cloudUpsert<InspectionSchedule>("inspection_schedules", {
         id: genId(),
         org_id: orgId,
-        series_id: series.id,
-        hubspot_asset_id: series.hubspot_asset_id,
+        contract_id: contract.id,
+        hubspot_asset_id: contract.hubspot_asset_id,
         scheduled_date: date,
         status: "DRAFT",
         hubspot_inspection_ticket_id: null,

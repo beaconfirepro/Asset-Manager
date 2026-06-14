@@ -11,8 +11,8 @@ import {
 import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useInspectionSchedules } from "@/hooks/useInspectionSchedules";
-import { useInspectionSeries } from "@/hooks/useInspectionSeries";
-import { InspectionCalendar } from "@/components/series/InspectionCalendar";
+import { useInspectionContracts } from "@/hooks/useInspectionContracts";
+import { InspectionCalendar } from "@/components/contracts/InspectionCalendar";
 import { Card, CardContent } from "@/components/ui/Card";
 import type { InspectionSchedule } from "@/db/schema";
 
@@ -21,7 +21,7 @@ export default function CalendarScreen() {
   const router = useRouter();
 
   const { data: schedules = [], isLoading: schLoading, refetch: refetchSch } = useInspectionSchedules();
-  const { data: series = [], isLoading: serLoading, refetch: refetchSer } = useInspectionSeries();
+  const { data: contract = [], isLoading: serLoading, refetch: refetchSer } = useInspectionContracts();
 
   const isLoading = schLoading || serLoading;
 
@@ -41,9 +41,9 @@ export default function CalendarScreen() {
   const onTrack = active.filter((s) => s.scheduled_date.slice(0, 10) > in14);
 
   const handleSelectSchedule = (schedule: InspectionSchedule) => {
-    const ser = series.find((s) => s.id === schedule.series_id);
+    const ser = contract.find((s) => s.id === schedule.contract_id);
     if (ser) {
-      router.push(`/series/${ser.id}` as any);
+      router.push(`/contracts/${ser.id}` as any);
     }
   };
 

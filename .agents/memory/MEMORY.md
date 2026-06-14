@@ -1,3 +1,4 @@
 - [Monorepo composite type declarations](monorepo-composite-declarations.md) — after editing lib/* schema/exports, rebuild declarations or referencing projects' typecheck fails on new exports while runtime (esbuild) still works.
 - [ITM web cloud architecture](itm-web-cloud.md) — web has no SQLite; hooks must branch isWeb→cloud REST API before getDb(); entity API tenancy rules.
 - [ITM web layout](itm-web-layout.md) — double-header trap (Tabs + nested Stack); use safe-area insets not magic topPad; tab-bar bottom clearance; global scrollbar hide.
+- [Expo rename Metro cache](expo-rename-metro-cache.md) — after renaming route dirs/files, tsc passes but the app shows stale routes/unresolved modules; clear Metro cache + restart.

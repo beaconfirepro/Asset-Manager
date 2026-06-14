@@ -11,60 +11,60 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
-import { useInspectionSeries, useCreateSeries } from "@/hooks/useInspectionSeries";
+import { useInspectionContracts, useCreateContract } from "@/hooks/useInspectionContracts";
 import { useInspectionSchedules } from "@/hooks/useInspectionSchedules";
 import { useAssets } from "@/hooks/useAssets";
-import { SeriesCard } from "@/components/series/SeriesCard";
-import { SeriesRevenuePanel } from "@/components/series/SeriesRevenuePanel";
-import { InspectionSeriesFormModal } from "@/components/series/InspectionSeriesFormModal";
+import { ContractCard } from "@/components/contracts/ContractCard";
+import { ContractRevenuePanel } from "@/components/contracts/ContractRevenuePanel";
+import { InspectionContractFormModal } from "@/components/contracts/InspectionContractFormModal";
 import { EmptyState } from "@/components/ui/EmptyState";
-import type { InspectionSeries } from "@/db/schema";
+import type { InspectionContract } from "@/db/schema";
 
 type FilterTab = "all" | "booked" | "unbooked";
 
-export default function SeriesListScreen() {
+export default function ContractListScreen() {
   const colors = useColors();
   const { orgId } = useAuth();
   const [filterTab, setFilterTab] = useState<FilterTab>("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const { data: series = [], isLoading, refetch } = useInspectionSeries();
+  const { data: contract = [], isLoading, refetch } = useInspectionContracts();
   const { data: allSchedules = [] } = useInspectionSchedules();
   const { data: assets = [] } = useAssets();
-  const createSeries = useCreateSeries();
+  const createContract = useCreateContract();
 
   const assetOptions = assets.map((a) => ({ id: a.id, name: a.name }));
 
   const filtered = useMemo(() => {
-    if (filterTab === "booked") return series.filter((s) => s.is_booked);
-    if (filterTab === "unbooked") return series.filter((s) => !s.is_booked);
-    return series;
-  }, [series, filterTab]);
+    if (filterTab === "booked") return contract.filter((s) => s.is_booked);
+    if (filterTab === "unbooked") return contract.filter((s) => !s.is_booked);
+    return contract;
+  }, [contract, filterTab]);
 
-  const nextDateBySeries = useMemo(() => {
+  const nextDateByContract = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
     const map: Record<string, string | null> = {};
-    for (const s of series) {
+    for (const s of contract) {
       const upcoming = allSchedules
-        .filter((sc) => sc.series_id === s.id && sc.scheduled_date >= today && sc.status !== "CANCELLED")
+        .filter((sc) => sc.contract_id === s.id && sc.scheduled_date >= today && sc.status !== "CANCELLED")
         .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
       map[s.id] = upcoming[0]?.scheduled_date ?? null;
     }
     return map;
-  }, [series, allSchedules]);
+  }, [contract, allSchedules]);
 
-  const countBySeries = useMemo(() => {
+  const countByContract = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const s of series) {
-      map[s.id] = allSchedules.filter((sc) => sc.series_id === s.id && sc.status !== "CANCELLED").length;
+    for (const s of contract) {
+      map[s.id] = allSchedules.filter((sc) => sc.contract_id === s.id && sc.status !== "CANCELLED").length;
     }
     return map;
-  }, [series, allSchedules]);
+  }, [contract, allSchedules]);
 
   const FILTER_TABS: { key: FilterTab; label: string }[] = [
-    { key: "all", label: `All (${series.length})` },
-    { key: "booked", label: `Booked (${series.filter((s) => s.is_booked).length})` },
-    { key: "unbooked", label: `Potential (${series.filter((s) => !s.is_booked).length})` },
+    { key: "all", label: `All (${contract.length})` },
+    { key: "booked", label: `Booked (${contract.filter((s) => s.is_booked).length})` },
+    { key: "unbooked", label: `Potential (${contract.filter((s) => !s.is_booked).length})` },
   ];
 
   if (isLoading) {
@@ -84,7 +84,7 @@ export default function SeriesListScreen() {
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} tintColor={colors.primary} />}
         ListHeaderComponent={
           <View style={styles.header}>
-            {series.length > 0 && <SeriesRevenuePanel series={series} />}
+            {contract.length > 0 && <ContractRevenuePanel contract={contract} />}
 
             <View style={styles.filterRow}>
               {FILTER_TABS.map((tab) => (
@@ -119,11 +119,11 @@ export default function SeriesListScreen() {
           />
         }
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-        renderItem={({ item }: { item: InspectionSeries }) => (
-          <SeriesCard
-            series={item}
-            nextDate={nextDateBySeries[item.id]}
-            scheduleCount={countBySeries[item.id]}
+        renderItem={({ item }: { item: InspectionContract }) => (
+          <ContractCard
+            contract={item}
+            nextDate={nextDateByContract[item.id]}
+            scheduleCount={countByContract[item.id]}
           />
         )}
       />
@@ -135,13 +135,13 @@ export default function SeriesListScreen() {
         <Feather name="plus" size={22} color="#fff" />
       </Pressable>
 
-      <InspectionSeriesFormModal
+      <InspectionContractFormModal
         visible={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         mode="create"
         assetOptions={assetOptions}
         onSubmit={async (data) => {
-          await createSeries.mutateAsync(data);
+          await createContract.mutateAsync(data);
         }}
       />
     </View>

@@ -7,7 +7,7 @@ description: How headers, top padding, and scrollbars are handled across the ITM
 
 The ITM Expo app renders on web inside a narrow proxied iframe. Two navigator layers
 can each draw a native header: the `(tabs)` Tabs navigator AND each tab's nested Stack
-(`assets/_layout`, `series/_layout`, etc.).
+(`assets/_layout`, `contracts/_layout`, etc.).
 
 **The double-header trap:** a screen that renders its OWN rich in-screen header (title +
 subtitle + action buttons, e.g. Dashboard "ITM Dashboard", Assets "Asset Registry")

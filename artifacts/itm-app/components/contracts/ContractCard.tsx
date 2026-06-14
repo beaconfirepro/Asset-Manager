@@ -5,10 +5,10 @@ import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { Badge } from "@/components/ui/Badge";
 import { SystemTypeBadge } from "@/components/assets/SystemTypeBadge";
-import type { InspectionSeries } from "@/db/schema";
+import type { InspectionContract } from "@/db/schema";
 
 type Props = {
-  series: InspectionSeries;
+  contract: InspectionContract;
   nextDate?: string | null;
   scheduleCount?: number;
 };
@@ -21,7 +21,7 @@ function freqLabel(days: number) {
   return `Every ${days}d`;
 }
 
-export function SeriesCard({ series, nextDate, scheduleCount }: Props) {
+export function ContractCard({ contract, nextDate, scheduleCount }: Props) {
   const colors = useColors();
   const router = useRouter();
 
@@ -30,7 +30,7 @@ export function SeriesCard({ series, nextDate, scheduleCount }: Props) {
 
   return (
     <Pressable
-      onPress={() => router.push(`/series/${series.id}` as any)}
+      onPress={() => router.push(`/contracts/${contract.id}` as any)}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: colors.card, borderColor: colors.border },
@@ -40,22 +40,22 @@ export function SeriesCard({ series, nextDate, scheduleCount }: Props) {
       <View style={styles.top}>
         <View style={styles.titleRow}>
           <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={2}>
-            {series.name}
+            {contract.name}
           </Text>
           <Badge
-            label={series.is_booked ? "Booked" : "Unbooked"}
-            variant={series.is_booked ? "success" : "muted"}
+            label={contract.is_booked ? "Booked" : "Unbooked"}
+            variant={contract.is_booked ? "success" : "muted"}
             size="sm"
           />
         </View>
-        <SystemTypeBadge systemType={series.system_type} size="sm" />
+        <SystemTypeBadge systemType={contract.system_type} size="sm" />
       </View>
 
       <View style={styles.meta}>
         <View style={styles.metaItem}>
           <Feather name="repeat" size={11} color={colors.mutedForeground} />
           <Text style={[styles.metaText, { color: colors.mutedForeground }]}>
-            {freqLabel(series.frequency_days)}
+            {freqLabel(contract.frequency_days)}
           </Text>
         </View>
         {scheduleCount !== undefined && (
@@ -78,11 +78,11 @@ export function SeriesCard({ series, nextDate, scheduleCount }: Props) {
             </Text>
           </View>
         )}
-        {series.contracted_amount != null && (
+        {contract.contracted_amount != null && (
           <View style={styles.metaItem}>
             <Feather name="dollar-sign" size={11} color={colors.success} />
             <Text style={[styles.metaText, { color: colors.success }]}>
-              ${series.contracted_amount.toLocaleString()}
+              ${contract.contracted_amount.toLocaleString()}
             </Text>
           </View>
         )}

@@ -8,7 +8,7 @@ import {
   inspectionResults,
   systemTests,
   testEquipment,
-  inspectionSeries,
+  inspectionContracts,
 } from "@/db/schema";
 import { useAuth } from "@/context/AuthContext";
 
@@ -55,13 +55,13 @@ export function useDashboard() {
       const now = new Date().toISOString();
       const in30 = new Date(Date.now() + 30 * 86_400_000).toISOString();
 
-      const [links, schedules, results, tests, equipment, series] = await Promise.all([
+      const [links, schedules, results, tests, equipment, contract] = await Promise.all([
         db.select().from(assetComplianceLinks).where(eq(assetComplianceLinks.org_id, orgId)),
         db.select().from(inspectionSchedules).where(eq(inspectionSchedules.org_id, orgId)),
         db.select().from(inspectionResults).where(eq(inspectionResults.org_id, orgId)),
         db.select().from(systemTests).where(eq(systemTests.org_id, orgId)),
         db.select().from(testEquipment).where(eq(testEquipment.org_id, orgId)),
-        db.select().from(inspectionSeries).where(eq(inspectionSeries.org_id, orgId)),
+        db.select().from(inspectionContracts).where(eq(inspectionContracts.org_id, orgId)),
       ]);
 
       const complianceHealth = {
@@ -76,10 +76,10 @@ export function useDashboard() {
       const overdueCount = active.filter((s) => s.scheduled_date < now).length;
       const upcomingCount = active.filter((s) => s.scheduled_date >= now && s.scheduled_date <= in30).length;
 
-      const bookedRevenue = series
+      const bookedRevenue = contract
         .filter((s) => s.is_booked && s.contracted_amount)
         .reduce((acc, s) => acc + (s.contracted_amount ?? 0), 0);
-      const potentialRevenue = series
+      const potentialRevenue = contract
         .filter((s) => !s.is_booked && s.contracted_amount)
         .reduce((acc, s) => acc + (s.contracted_amount ?? 0), 0);
 
@@ -141,12 +141,12 @@ export function useDashboard() {
           });
         });
 
-      series
+      contract
         .filter((s) => s.is_booked)
         .slice(0, 3)
         .forEach((s) => {
           actionQueue.push({
-            id: `series-${s.id}`,
+            id: `contract-${s.id}`,
             type: "DUE_SOON",
             title: "Booked Contracts Active",
             subtitle: s.name,

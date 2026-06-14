@@ -20,7 +20,7 @@ function NativeTabLayout() {
       <Icon sf={{ default: "building.2", selected: "building.2.fill" }} />
       <Label>Assets</Label>
     </NativeTabs.Trigger>,
-    <NativeTabs.Trigger key="series" name="series">
+    <NativeTabs.Trigger key="contracts" name="contracts">
       <Icon sf={{ default: "repeat", selected: "repeat.1" }} />
       <Label>Contracts</Label>
     </NativeTabs.Trigger>,
@@ -115,7 +115,7 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="series"
+        name="contracts"
         options={{
           title: "Contracts",
           headerShown: false,
