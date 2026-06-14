@@ -158,6 +158,7 @@ export function useCreateCalibration() {
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ["test-equipment", orgId] });
       qc.invalidateQueries({ queryKey: ["calibration-records", orgId, variables.equipment_id] });
+      qc.invalidateQueries({ queryKey: ["calibration-records", orgId, "all"] });
       qc.invalidateQueries({ queryKey: ["dashboard", orgId] });
     },
   });

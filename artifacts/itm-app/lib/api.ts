@@ -1,3 +1,74 @@
+export type GeneratedFormField = {
+  id: string;
+  label: string;
+  type: "boolean" | "number" | "text" | "select";
+  required: boolean;
+  deficiency_trigger?: boolean;
+  options?: string[];
+};
+
+export type GeneratedFormDraft = {
+  form_name: string;
+  system_type: string;
+  compliance_standard_code: string;
+  fields: GeneratedFormField[];
+};
+
+export type CodeUpdateResult = {
+  form_id: string;
+  form_name: string;
+  standard_code: string;
+  current_version: string;
+  latest_version: string;
+  change_summary: string;
+};
+
+export type CodeReferenceResult = {
+  code: string;
+  section: string;
+  text: string;
+};
+
+const STUB_FORM_TEMPLATES: Record<string, GeneratedFormField[]> = {
+  FIRE_SPRINKLER: [
+    { id: "visual_no_obstructions", label: "No obstructions within 18\" of sprinkler heads", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "visual_no_corrosion", label: "No visible corrosion, scale, or paint on heads", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "static_pressure_psi", label: "Static pressure reading (psi)", type: "number", required: true, deficiency_trigger: true },
+    { id: "residual_pressure_psi", label: "Residual pressure at most remote outlet (psi)", type: "number", required: true, deficiency_trigger: true },
+    { id: "valves_correct_position", label: "All control valves in correct open position", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "gauges_functional", label: "Gauges functioning and within acceptable range", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "alarm_valve_tested", label: "Alarm valve tested and operational", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "signage_present", label: "Required NFPA signage posted and legible", type: "boolean", required: false },
+    { id: "inspector_notes", label: "Additional inspector observations", type: "text", required: false },
+  ],
+  FIRE_ALARM: [
+    { id: "panel_no_faults", label: "Main control panel shows no active faults", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "battery_backup_ok", label: "Battery backup tested — holds charge under load", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "smoke_detector_sensitivity", label: "Smoke detector sensitivity within listed range (%/ft)", type: "number", required: true, deficiency_trigger: true },
+    { id: "pull_stations_accessible", label: "All pull stations accessible and unobstructed", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "notification_appliances_ok", label: "Horns/strobes tested — audible/visual output verified", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "monitoring_verified", label: "Central station monitoring connection verified", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "records_on_site", label: "Previous inspection records available on site", type: "boolean", required: false },
+    { id: "inspector_notes", label: "Additional inspector observations", type: "text", required: false },
+  ],
+  KITCHEN_HOOD: [
+    { id: "hood_clean", label: "Grease filters clean — no buildup exceeding 1/8\"", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "fusible_links_intact", label: "All fusible links intact and not deformed", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "agent_cylinder_pressure", label: "Suppression agent cylinder pressure within range", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "nozzles_unobstructed", label: "All discharge nozzles unobstructed and properly aimed", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "manual_pull_accessible", label: "Manual pull station accessible and labeled", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "gas_valve_interlocked", label: "Gas/electric interlock shuts off on system actuation", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "inspector_notes", label: "Additional inspector observations", type: "text", required: false },
+  ],
+};
+
+const DEFAULT_FIELDS: GeneratedFormField[] = [
+  { id: "visual_general", label: "System in good general condition — no visible damage", type: "boolean", required: true, deficiency_trigger: true },
+  { id: "equipment_accessible", label: "All equipment accessible for inspection", type: "boolean", required: true, deficiency_trigger: true },
+  { id: "documentation_on_site", label: "System documentation available on site", type: "boolean", required: false },
+  { id: "inspector_notes", label: "Additional inspector observations", type: "text", required: false },
+];
+
 const ITM_API_BASE = process.env.EXPO_PUBLIC_DOMAIN
   ? `https://${process.env.EXPO_PUBLIC_DOMAIN}/api/itm`
   : "http://localhost:5000/api/itm";
@@ -97,6 +168,75 @@ class ITMApiClient {
 
   async getReport(orgId: string, reportId: string): Promise<unknown> {
     return this.fetch(`/reports/${encodeURIComponent(reportId)}?org_id=${encodeURIComponent(orgId)}`);
+  }
+
+  async generateForm(
+    _orgId: string,
+    systemType: string,
+    standardCode: string,
+  ): Promise<GeneratedFormDraft> {
+    const systemLabel = systemType.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const fields = STUB_FORM_TEMPLATES[systemType] ?? DEFAULT_FIELDS;
+    return {
+      form_name: `${standardCode} ${systemLabel} Checklist`,
+      system_type: systemType,
+      compliance_standard_code: standardCode,
+      fields,
+    };
+  }
+
+  async detectCodeUpdates(_orgId: string): Promise<CodeUpdateResult[]> {
+    return [];
+  }
+
+  async analyzePhoto(
+    _orgId: string,
+    _photoUrl: string,
+    _contextId: string,
+  ): Promise<{ detected_issues: string[]; confidence: number; suggestion_text: string }> {
+    return { detected_issues: [], confidence: 0, suggestion_text: "" };
+  }
+
+  async autofillFinding(
+    _orgId: string,
+    _fieldId: string,
+    _context: Record<string, unknown>,
+  ): Promise<{ suggested_text: string; confidence: number }> {
+    return { suggested_text: "", confidence: 0 };
+  }
+
+  async getCodeReference(
+    _orgId: string,
+    standardCode: string,
+    section?: string,
+  ): Promise<CodeReferenceResult[]> {
+    const refs: Record<string, CodeReferenceResult[]> = {
+      "NFPA 25": [
+        { code: "NFPA 25", section: "§5.2.1", text: "Control valves shall be inspected weekly or monthly depending on supervision method." },
+        { code: "NFPA 25", section: "§14.2.1.2", text: "Wet pipe systems shall be inspected per the frequency requirements of Table 5.1." },
+        { code: "NFPA 25", section: "§13.2.5.1", text: "Gauges on wet pipe systems shall be replaced or recalibrated every 5 years." },
+      ],
+      "NFPA 72": [
+        { code: "NFPA 72", section: "§14.3.1", text: "Smoke detectors shall be tested at least annually using listed aerosol or functional test method." },
+        { code: "NFPA 72", section: "§10.14.1", text: "Primary power failure shall be annunciated at the control unit within 200 seconds." },
+        { code: "NFPA 72", section: "§14.4.5", text: "Notification appliances shall be tested annually for audibility and visibility." },
+      ],
+      "NFPA 96": [
+        { code: "NFPA 96", section: "§11.4.1", text: "Fusible links shall be replaced at maximum 12-month intervals or more frequently if required." },
+        { code: "NFPA 96", section: "§11.2.3", text: "Grease filters and extraction equipment shall be cleaned to bare metal at required intervals." },
+        { code: "NFPA 96", section: "§10.5.1", text: "Cooking equipment shall be shut off upon system actuation via interlock." },
+      ],
+      "NFPA 2001": [
+        { code: "NFPA 2001", section: "§7.2.1", text: "Containers shall be weighed or the quantity of agent verified by an approved method annually." },
+        { code: "NFPA 2001", section: "§7.3.1", text: "Detection systems shall be tested per the requirements of NFPA 72." },
+      ],
+      "NFPA 110": [
+        { code: "NFPA 110", section: "§8.4.1", text: "Level 1 systems shall be tested monthly under simulated loss of normal power." },
+        { code: "NFPA 110", section: "§8.4.2", text: "The generator shall be exercised under load for a minimum of 30 minutes monthly." },
+      ],
+    };
+    const all = refs[standardCode] ?? [];
+    return section ? all.filter((r) => r.section.includes(section)) : all;
   }
 }
 

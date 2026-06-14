@@ -24,7 +24,10 @@ import { useInspectionSchedules } from "@/hooks/useInspectionSchedules";
 import { useInspectionSeries } from "@/hooks/useInspectionSeries";
 import { OfflineSyncIndicator } from "@/components/inspections/OfflineSyncIndicator";
 import { QuestionSetRenderer } from "@/components/inspections/QuestionSetRenderer";
+import { AiSuggestionPanel } from "@/components/ai/AiSuggestionPanel";
+import { CodeReferenceDrawer } from "@/components/ai/CodeReferenceDrawer";
 import { Button } from "@/components/ui/Button";
+import { FEATURES } from "@/lib/featureFlags";
 import {
   parseFormSchema,
   parseFormData,
@@ -40,6 +43,8 @@ export default function InspectionWorkspaceScreen() {
 
   const progressAnim = useRef(new Animated.Value(0)).current;
   const [gpsLoading, setGpsLoading] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const [showCodeRef, setShowCodeRef] = useState(false);
 
   const { data: allSchedules = [] } = useInspectionSchedules();
   const { data: allSeries = [] } = useInspectionSeries();
@@ -303,6 +308,22 @@ export default function InspectionWorkspaceScreen() {
           </Text>
         </View>
 
+        {FEATURES.AI_CODE_INTELLIGENCE && (
+          <Pressable
+            onPress={() => setShowAiPanel((v) => !v)}
+            style={[
+              styles.aiHeaderBtn,
+              showAiPanel && { backgroundColor: colors.primary + "22" },
+            ]}
+            hitSlop={8}
+          >
+            <Feather
+              name="cpu"
+              size={18}
+              color={showAiPanel ? colors.primary : colors.mutedForeground}
+            />
+          </Pressable>
+        )}
         <OfflineSyncIndicator compact />
       </View>
 
@@ -374,6 +395,24 @@ export default function InspectionWorkspaceScreen() {
             disabled={isSubmitted}
           />
 
+          {FEATURES.AI_CODE_INTELLIGENCE && showAiPanel && result && (
+            <View style={[styles.aiPanelSection, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={styles.aiPanelHeader}>
+                <Feather name="cpu" size={14} color={colors.primary} />
+                <Text style={[styles.aiPanelTitle, { color: colors.foreground }]}>AI Assist</Text>
+                <Pressable onPress={() => setShowCodeRef(true)} hitSlop={8} style={styles.codeRefBtn}>
+                  <Feather name="book-open" size={13} color={colors.primary} />
+                  <Text style={[styles.codeRefLink, { color: colors.primary }]}>Code Refs</Text>
+                </Pressable>
+              </View>
+              <AiSuggestionPanel
+                contextType="inspection_result"
+                contextId={result.id}
+                showTitle={false}
+              />
+            </View>
+          )}
+
           {outboxConflicts.length > 0 && (
             <View style={[styles.conflictSection, { borderColor: colors.warning + "55" }]}>
               <View style={styles.conflictHeader}>
@@ -431,6 +470,9 @@ export default function InspectionWorkspaceScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      {FEATURES.AI_CODE_INTELLIGENCE && (
+        <CodeReferenceDrawer visible={showCodeRef} onClose={() => setShowCodeRef(false)} />
+      )}
     </SafeAreaView>
   );
 }
@@ -489,4 +531,10 @@ const styles = StyleSheet.create({
   conflictItemType: { fontSize: 12, fontFamily: "Inter_500Medium", textTransform: "capitalize" },
   conflictError: { fontSize: 11, fontFamily: "Inter_400Regular", fontStyle: "italic" },
   conflictAttempts: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  aiHeaderBtn: { padding: 6, borderRadius: 8 },
+  aiPanelSection: { borderRadius: 12, borderWidth: 1, padding: 12, gap: 10 },
+  aiPanelHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  aiPanelTitle: { fontSize: 15, fontFamily: "Inter_600SemiBold", flex: 1 },
+  codeRefBtn: { flexDirection: "row", alignItems: "center", gap: 4 },
+  codeRefLink: { fontSize: 12, fontFamily: "Inter_500Medium" },
 });

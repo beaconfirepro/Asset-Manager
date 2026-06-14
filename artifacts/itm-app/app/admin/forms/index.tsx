@@ -14,12 +14,15 @@ import { useInspectionForms } from "@/hooks/useInspectionForms";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SystemTypeBadge } from "@/components/assets/SystemTypeBadge";
+import { AiGenerateFormModal } from "@/components/ai/AiGenerateFormModal";
+import { FEATURES } from "@/lib/featureFlags";
 import type { InspectionForm } from "@/db/schema";
 
 export default function AdminFormsListScreen() {
   const colors = useColors();
   const router = useRouter();
   const { data: forms = [], isLoading, refetch } = useInspectionForms();
+  const [showAiModal, setShowAiModal] = useState(false);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -79,12 +82,31 @@ export default function AdminFormsListScreen() {
         }}
       />
 
+      {FEATURES.AI_CODE_INTELLIGENCE && (
+        <Pressable
+          onPress={() => setShowAiModal(true)}
+          style={[styles.fab, styles.fabAi, { backgroundColor: colors.info }]}
+        >
+          <Feather name="cpu" size={20} color="#fff" />
+        </Pressable>
+      )}
+
       <Pressable
         onPress={() => router.push("/admin/forms/new" as any)}
         style={[styles.fab, { backgroundColor: colors.primary }]}
       >
         <Feather name="plus" size={22} color="#fff" />
       </Pressable>
+
+      {FEATURES.AI_CODE_INTELLIGENCE && (
+        <AiGenerateFormModal
+          visible={showAiModal}
+          onClose={() => setShowAiModal(false)}
+          onFormCreated={(formId) => {
+            router.push(`/admin/forms/${formId}` as any);
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -114,4 +136,5 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
   },
+  fabAi: { bottom: 160 },
 });

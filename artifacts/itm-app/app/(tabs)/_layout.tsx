@@ -8,6 +8,7 @@ import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+import { FEATURES } from "@/lib/featureFlags";
 
 function NativeTabLayout() {
   return (
@@ -36,6 +37,12 @@ function NativeTabLayout() {
         <Icon sf={{ default: "flask", selected: "flask.fill" }} />
         <Label>Testing</Label>
       </NativeTabs.Trigger>
+      {FEATURES.AI_CODE_INTELLIGENCE && (
+        <NativeTabs.Trigger name="ai">
+          <Icon sf={{ default: "sparkles", selected: "sparkles" }} />
+          <Label>AI</Label>
+        </NativeTabs.Trigger>
+      )}
     </NativeTabs>
   );
 }
@@ -154,6 +161,21 @@ function ClassicTabLayout() {
             ),
         }}
       />
+      {FEATURES.AI_CODE_INTELLIGENCE && (
+        <Tabs.Screen
+          name="ai"
+          options={{
+            title: "AI",
+            headerShown: false,
+            tabBarIcon: ({ color }) =>
+              isIOS ? (
+                <SymbolView name="sparkles" tintColor={color} size={24} />
+              ) : (
+                <Feather name="cpu" size={22} color={color} />
+              ),
+          }}
+        />
+      )}
     </Tabs>
   );
 }
