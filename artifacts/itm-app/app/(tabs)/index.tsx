@@ -1,111 +1,86 @@
 import React from "react";
-import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
 import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
-import { Card, CardHeader, CardContent } from "@/components/ui/Card";
-import { StatusBadge } from "@/components/ui/Badge";
-
-type FoundationItem = {
-  id: string;
-  label: string;
-  description: string;
-  status: "COMPLETED" | "PENDING";
-  icon: string;
-};
-
-const FOUNDATION_ITEMS: FoundationItem[] = [
-  { id: "schema", label: "Drizzle Schema", description: "All DATA_MODEL Section 2 tables created", status: "COMPLETED", icon: "database" },
-  { id: "seed", label: "Seed Data", description: "org_beacon_test_001 seeded with all enum states", status: "COMPLETED", icon: "layers" },
-  { id: "sync", label: "Sync Outbox", description: "Enqueue / drain runner / SyncStatus transitions", status: "COMPLETED", icon: "upload-cloud" },
-  { id: "auth", label: "Pluggable OAuth", description: "Microsoft Entra via AuthProviderConfig", status: "COMPLETED", icon: "shield" },
-  { id: "session", label: "Session Resolver", description: "org_id from session only — never from request", status: "COMPLETED", icon: "user-check" },
-  { id: "hubspot", label: "HubSpot Connector", description: "Typed stub + HubspotObjectCache TTL read-through", status: "COMPLETED", icon: "link" },
-  { id: "connecteam", label: "Connecteam Connector", description: "Crew shift push stub via outbox", status: "COMPLETED", icon: "users" },
-  { id: "qbo", label: "QBO Connector", description: "Invoice handoff stub via outbox", status: "COMPLETED", icon: "file-text" },
-  { id: "components", label: "Component Kit", description: "Button, Card, Badge, Table, Modal, Input, Tabs, EmptyState", status: "COMPLETED", icon: "layout" },
-  { id: "theme", label: "Dark-First Theme", description: "Sunlight-contrast NativeWind tokens in constants/colors.ts", status: "COMPLETED", icon: "sun" },
-];
+import { ComplianceHealthCard } from "@/components/dashboard/ComplianceHealthCard";
+import { UpcomingInspectionsCard } from "@/components/dashboard/UpcomingInspectionsCard";
+import { RecurringRevenueCard } from "@/components/dashboard/RecurringRevenueCard";
+import { ActionQueuePanel } from "@/components/dashboard/ActionQueuePanel";
+import { useDashboard } from "@/hooks/useDashboard";
 
 export default function DashboardScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
+  const { data, isLoading, refetch, isRefetching } = useDashboard();
   const topPad = Platform.OS === "web" ? 67 : 0;
+
+  const health = data?.complianceHealth ?? { compliant: 0, nonCompliant: 0, pending: 0, exempt: 0, total: 0 };
 
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={[
         styles.content,
-        { paddingTop: topPad + 16, paddingBottom: insets.bottom + 32 },
+        { paddingTop: topPad + 16, paddingBottom: insets.bottom + 40 },
       ]}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
+      }
     >
       <View style={styles.header}>
         <View>
           <Text style={[styles.greeting, { color: colors.mutedForeground }]}>
-            Phase 0 — Foundation
+            {session?.orgId ?? "Beacon Fire Protection"}
           </Text>
-          <Text style={[styles.title, { color: colors.foreground }]}>ITM App</Text>
-          {session && (
-            <Text style={[styles.user, { color: colors.mutedForeground }]}>
-              {session.user.name} · {session.orgId}
-            </Text>
+          <Text style={[styles.title, { color: colors.foreground }]}>ITM Dashboard</Text>
+          {session?.user?.name && (
+            <Text style={[styles.user, { color: colors.mutedForeground }]}>{session.user.name}</Text>
           )}
         </View>
         <OfflineSyncIndicator compact />
       </View>
 
-      <Card style={styles.heroCard}>
-        <CardHeader
-          title="Foundation Complete"
-          subtitle="All Phase 0 deliverables are in place"
-          right={
-            <View style={[styles.completeBadge, { backgroundColor: colors.success + "22" }]}>
-              <Feather name="check-circle" size={18} color={colors.success} />
-              <Text style={[styles.completeText, { color: colors.success }]}>10/10</Text>
-            </View>
-          }
-        />
-        <CardContent>
-          <Text style={[styles.heroDesc, { color: colors.mutedForeground }]}>
-            Expo scaffold · Drizzle/SQLite · Sync outbox · Microsoft Entra OAuth ·
-            Integration stubs (HubSpot, Connecteam, QBO) · Shared component kit
+      {Platform.OS === "web" ? (
+        <View style={[styles.webNote, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+          <Text style={[styles.webNoteText, { color: colors.mutedForeground }]}>
+            Full dashboard data loads on device via Expo Go (SQLite + offline cache).
           </Text>
-        </CardContent>
-      </Card>
+        </View>
+      ) : null}
 
-      <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-        Foundation Checklist
-      </Text>
+      <ComplianceHealthCard
+        compliant={health.compliant}
+        nonCompliant={health.nonCompliant}
+        pending={health.pending}
+        exempt={health.exempt}
+        total={health.total}
+      />
 
-      {FOUNDATION_ITEMS.map((item) => (
-        <Card key={item.id} style={styles.itemCard}>
-          <View style={styles.itemRow}>
-            <View style={[styles.iconBox, { backgroundColor: colors.muted }]}>
-              <Feather name={item.icon as never} size={18} color={colors.primary} />
-            </View>
-            <View style={styles.itemText}>
-              <Text style={[styles.itemLabel, { color: colors.foreground }]}>{item.label}</Text>
-              <Text style={[styles.itemDesc, { color: colors.mutedForeground }]}>{item.description}</Text>
-            </View>
-            <StatusBadge status={item.status} size="sm" />
-          </View>
-        </Card>
-      ))}
+      <View style={styles.row}>
+        <View style={styles.halfCard}>
+          <UpcomingInspectionsCard
+            upcomingCount={data?.upcomingCount ?? 0}
+            overdueCount={data?.overdueCount ?? 0}
+          />
+        </View>
+        <View style={styles.halfCard}>
+          <RecurringRevenueCard
+            booked={data?.recurringRevenue.booked ?? 0}
+            potential={data?.recurringRevenue.potential ?? 0}
+          />
+        </View>
+      </View>
 
-      <Card style={{ ...styles.nextCard, borderColor: colors.primary + "44" }}>
-        <CardHeader title="Next: Phase 1" subtitle="Asset Registry + Compliance Dashboard" />
-        <CardContent>
-          <Text style={[styles.heroDesc, { color: colors.mutedForeground }]}>
-            HubSpot-backed asset list with ITM compliance overlay, traffic-light dashboard,
-            action queue, and filter facets. Awaiting Phase 1 task start.
-          </Text>
-        </CardContent>
-      </Card>
+      <ActionQueuePanel items={data?.actionQueue ?? []} />
     </ScrollView>
   );
 }
@@ -122,16 +97,13 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 12, fontFamily: "Inter_500Medium", textTransform: "uppercase", letterSpacing: 0.8 },
   title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.5, marginTop: 2 },
   user: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 2 },
-  heroCard: { marginBottom: 4 },
-  heroDesc: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
-  completeBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100 },
-  completeText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  sectionTitle: { fontSize: 16, fontFamily: "Inter_600SemiBold", marginTop: 4 },
-  itemCard: { paddingHorizontal: 0 },
-  itemRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14 },
-  iconBox: { width: 40, height: 40, borderRadius: 10, alignItems: "center", justifyContent: "center" },
-  itemText: { flex: 1 },
-  itemLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  itemDesc: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 1, lineHeight: 16 },
-  nextCard: { borderWidth: 2, marginTop: 8 },
+  row: { flexDirection: "row", gap: 12 },
+  halfCard: { flex: 1 },
+  webNote: {
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 4,
+  },
+  webNoteText: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 18 },
 });

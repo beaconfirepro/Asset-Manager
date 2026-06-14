@@ -16,6 +16,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "square.grid.2x2", selected: "square.grid.2x2.fill" }} />
         <Label>Dashboard</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="assets">
+        <Icon sf={{ default: "building.2", selected: "building.2.fill" }} />
+        <Label>Assets</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -67,6 +71,18 @@ function ClassicTabLayout() {
               <SymbolView name="square.grid.2x2" tintColor={color} size={24} />
             ) : (
               <Feather name="grid" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="assets"
+        options={{
+          title: "Assets",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="building.2" tintColor={color} size={24} />
+            ) : (
+              <Feather name="layers" size={22} color={color} />
             ),
         }}
       />
