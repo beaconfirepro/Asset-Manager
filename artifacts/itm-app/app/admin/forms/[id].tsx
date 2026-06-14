@@ -26,7 +26,7 @@ export default function AdminFormEditScreen() {
   }
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper safeBottom={false}>
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <InspectionFormBuilder
         initialForm={form}
