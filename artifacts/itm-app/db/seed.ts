@@ -18,9 +18,6 @@ export async function seedDatabase(): Promise<void> {
   const db = await getDb();
   const now = nowIso();
 
-  const existing = await db.select().from(schema.authProviderConfigs);
-  if (existing.length > 0) return;
-
   const ENTRA_CLIENT_ID = process.env.EXPO_PUBLIC_ENTRA_CLIENT_ID ?? "STUB_CLIENT_ID";
   const ENTRA_TENANT_ID = process.env.EXPO_PUBLIC_ENTRA_TENANT_ID ?? "STUB_TENANT_ID";
 
@@ -35,7 +32,17 @@ export async function seedDatabase(): Promise<void> {
     created_at: now,
     updated_at: now,
     sync_status: "SYNCED",
-  }]);
+  }]).onConflictDoUpdate({
+    target: schema.authProviderConfigs.id,
+    set: {
+      client_id: ENTRA_CLIENT_ID,
+      tenant_id: ENTRA_TENANT_ID,
+      updated_at: now,
+    },
+  });
+
+  const existing = await db.select().from(schema.complianceStandards);
+  if (existing.length > 0) return;
 
   const csSprinker = id("cs");
   const csAlarm = id("cs");

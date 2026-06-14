@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "scheme": "itm-app",
+    "scheme": "helm-itm",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {

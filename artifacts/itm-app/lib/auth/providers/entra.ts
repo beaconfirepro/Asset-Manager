@@ -41,7 +41,7 @@ export class EntraIDProvider {
 
   async signIn(): Promise<EntraAuthResult | null> {
     const { clientId, tenantId, scopes } = this.config;
-    const redirectUri = AuthSession.makeRedirectUri({ scheme: "itm-app" });
+    const redirectUri = AuthSession.makeRedirectUri({ scheme: "helm-itm" });
 
     const discovery = {
       authorizationEndpoint: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`,
