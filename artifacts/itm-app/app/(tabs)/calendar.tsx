@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   ActivityIndicator,
-  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -14,6 +13,7 @@ import { useInspectionSchedules } from "@/hooks/useInspectionSchedules";
 import { useInspectionContracts } from "@/hooks/useInspectionContracts";
 import { InspectionCalendar } from "@/components/contracts/InspectionCalendar";
 import { Card, CardContent } from "@/components/ui/Card";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import type { InspectionSchedule } from "@/db/schema";
 
 export default function CalendarScreen() {
@@ -49,51 +49,55 @@ export default function CalendarScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <ActivityIndicator color={colors.primary} />
-      </View>
+      <ScreenWrapper>
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      </ScreenWrapper>
     );
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl
-          refreshing={isLoading}
-          onRefresh={() => { refetchSch(); refetchSer(); }}
-          tintColor={colors.primary}
-        />
-      }
-    >
-      <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-        Internal operations view — {active.length} scheduled visit{active.length !== 1 ? "s" : ""}
-      </Text>
+    <ScreenWrapper>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={() => { refetchSch(); refetchSer(); }}
+            tintColor={colors.primary}
+          />
+        }
+      >
+        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          Internal operations view — {active.length} scheduled visit{active.length !== 1 ? "s" : ""}
+        </Text>
 
-      <View style={[styles.statsRow]}>
-        {[
-          { label: "Overdue", count: overdue.length, color: colors.destructive },
-          { label: "Due soon", count: dueSoon.length, color: colors.warning },
-          { label: "On track", count: onTrack.length, color: colors.info },
-        ].map((stat) => (
-          <Card key={stat.label} style={[styles.statCard, { borderColor: stat.color + "44" }]}>
-            <CardContent>
-              <Text style={[styles.statCount, { color: stat.color }]}>{stat.count}</Text>
-              <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
-            </CardContent>
-          </Card>
-        ))}
-      </View>
+        <View style={styles.statsRow}>
+          {[
+            { label: "Overdue", count: overdue.length, color: colors.destructive },
+            { label: "Due soon", count: dueSoon.length, color: colors.warning },
+            { label: "On track", count: onTrack.length, color: colors.info },
+          ].map((stat) => (
+            <Card key={stat.label} style={[styles.statCard, { borderColor: stat.color + "44" }]}>
+              <CardContent>
+                <Text style={[styles.statCount, { color: stat.color }]}>{stat.count}</Text>
+                <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{stat.label}</Text>
+              </CardContent>
+            </Card>
+          ))}
+        </View>
 
-      <InspectionCalendar schedules={active} onSelectSchedule={handleSelectSchedule} />
-    </ScrollView>
+        <InspectionCalendar schedules={active} onSelectSchedule={handleSelectSchedule} />
+      </ScrollView>
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 16, gap: 12, paddingBottom: Platform.OS === "web" ? 96 : 40 },
+  content: { padding: 16, gap: 12 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   subtitle: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 4 },
   statsRow: { flexDirection: "row", gap: 10 },
