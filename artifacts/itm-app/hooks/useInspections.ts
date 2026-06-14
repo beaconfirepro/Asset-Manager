@@ -54,6 +54,33 @@ export function useInspectionResults() {
   });
 }
 
+export function usePreviousInspection(hubspotAssetId: string | undefined) {
+  const { orgId } = useAuth();
+
+  return useQuery({
+    queryKey: ["prev-inspection", orgId, hubspotAssetId],
+    enabled: Platform.OS !== "web" && !!orgId && !!hubspotAssetId,
+    queryFn: async (): Promise<InspectionResult | null> => {
+      if (!orgId || !hubspotAssetId) return null;
+      const db = await getDb();
+      const rows = await db
+        .select()
+        .from(inspectionResults)
+        .where(
+          and(
+            eq(inspectionResults.org_id, orgId),
+            eq(inspectionResults.hubspot_asset_id, hubspotAssetId),
+          ),
+        );
+      const submitted = rows
+        .filter((r) => r.status === "QA_REVIEW" || r.status === "APPROVED")
+        .sort((a, b) => (b.submitted_at ?? "").localeCompare(a.submitted_at ?? ""));
+      return submitted[0] ?? null;
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
 type StartInspectionParams = {
   scheduleId: string;
   formId: string;
@@ -136,6 +163,7 @@ type SaveAnswerParams = {
   field: FormField;
   answer: string | boolean | string[] | null;
   currentFormData: string;
+  hubspotAssetId: string;
 };
 
 export function useSaveAnswer() {
@@ -150,6 +178,26 @@ export function useSaveAnswer() {
 
       const formData = JSON.parse(params.currentFormData) as Record<string, unknown>;
       formData[params.field.id] = params.answer;
+
+      const defEnqueuedKey = `_def_enqueued_${params.field.id}`;
+      const alreadyEnqueued = formData[defEnqueuedKey] === true;
+
+      if (isDeficient(params.field, params.answer) && !alreadyEnqueued) {
+        try {
+          const connector = getHubSpotConnector();
+          const outboxItem = await connector.createDeficiencyTicket({
+            org_id: orgId,
+            hubspot_asset_id: params.hubspotAssetId,
+            inspection_result_id: params.resultId,
+            deficiency_description: `Auto-detected deficiency: ${params.field.label} → ${params.answer}`,
+            severity: params.field.deficiency_severity ?? "MEDIUM",
+          });
+          formData[defEnqueuedKey] = true;
+          formData[`_def_ticket_${params.field.id}`] = `pending_${outboxItem.client_uuid}`;
+        } catch {
+        }
+      }
+
       const newFormDataStr = JSON.stringify(formData);
 
       await db
@@ -272,13 +320,31 @@ export function useSubmitInspection() {
         .set({ status: "QA_REVIEW", submitted_at: now, updated_at: now, sync_status: "PENDING" })
         .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
 
+      const [fullResult] = await db
+        .select()
+        .from(inspectionResults)
+        .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
+
       await enqueue({
         org_id: orgId,
         entity_type: "inspection_result",
         entity_id: params.resultId,
         operation: "UPDATE",
         payload: {
+          id: params.resultId,
+          org_id: orgId,
+          schedule_id: fullResult?.schedule_id,
+          form_id: fullResult?.form_id,
+          inspector_id: fullResult?.inspector_id,
+          hubspot_asset_id: fullResult?.hubspot_asset_id,
           status: "QA_REVIEW",
+          form_data: fullResult?.form_data ?? "{}",
+          photo_urls: fullResult?.photo_urls ?? null,
+          signature_url: fullResult?.signature_url ?? null,
+          gps_lat: fullResult?.gps_lat ?? null,
+          gps_lng: fullResult?.gps_lng ?? null,
+          hubspot_deficiency_ticket_id: fullResult?.hubspot_deficiency_ticket_id ?? null,
+          started_at: fullResult?.started_at,
           submitted_at: now,
           client_uuid: params.clientUuid,
           _sync_endpoint: "/itm/inspections/sync",

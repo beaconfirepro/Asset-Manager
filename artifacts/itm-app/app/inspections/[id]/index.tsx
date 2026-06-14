@@ -17,7 +17,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
-import { useInspectionResult, useStartInspection, useSaveAnswer, useEnqueueDeficiency, useAttachMedia, useSubmitInspection } from "@/hooks/useInspections";
+import { useInspectionResult, usePreviousInspection, useStartInspection, useSaveAnswer, useEnqueueDeficiency, useAttachMedia, useSubmitInspection } from "@/hooks/useInspections";
 import { useActiveForm } from "@/hooks/useInspectionForms";
 import { useInspectionSchedules } from "@/hooks/useInspectionSchedules";
 import { useInspectionSeries } from "@/hooks/useInspectionSeries";
@@ -47,6 +47,7 @@ export default function InspectionWorkspaceScreen() {
 
   const schedule = allSchedules.find((s) => s.id === scheduleId);
   const series = allSeries.find((s) => s.id === schedule?.series_id);
+  const { data: previousResult } = usePreviousInspection(schedule?.hubspot_asset_id);
 
   const { data: activeForm, isLoading: formLoading } = useActiveForm(series?.system_type);
 
@@ -114,6 +115,7 @@ export default function InspectionWorkspaceScreen() {
         field,
         answer,
         currentFormData: result.form_data,
+        hubspotAssetId: result.hubspot_asset_id,
       });
       setResult((prev) =>
         prev
@@ -323,6 +325,15 @@ export default function InspectionWorkspaceScreen() {
             <Text style={[styles.contextLabel, { color: colors.mutedForeground }]}>Asset</Text>
             <Text style={[styles.contextValue, { color: colors.foreground }]}>{result?.hubspot_asset_id ?? schedule?.hubspot_asset_id ?? "—"}</Text>
 
+            {previousResult && (
+              <View style={[styles.historyRow, { backgroundColor: colors.info + "11", borderColor: colors.info + "33" }]}>
+                <Feather name="clock" size={11} color={colors.info} />
+                <Text style={[styles.historyText, { color: colors.info }]}>
+                  Last inspection: {previousResult.submitted_at?.slice(0, 10) ?? previousResult.created_at?.slice(0, 10) ?? "unknown date"} · {previousResult.status}
+                </Text>
+              </View>
+            )}
+
             <View style={styles.gpsRow}>
               {result?.gps_lat ? (
                 <Text style={[styles.gpsText, { color: colors.success }]}>
@@ -409,6 +420,8 @@ const styles = StyleSheet.create({
   },
   contextLabel: { fontSize: 11, fontFamily: "Inter_600SemiBold", textTransform: "uppercase", letterSpacing: 0.5 },
   contextValue: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  historyRow: { flexDirection: "row", alignItems: "center", gap: 6, padding: 6, borderRadius: 6, borderWidth: 1, marginTop: 2 },
+  historyText: { fontSize: 11, fontFamily: "Inter_400Regular", flex: 1 },
   gpsRow: { marginTop: 4 },
   gpsText: { fontSize: 12, fontFamily: "Inter_400Regular" },
   gpsCapture: { fontSize: 12, fontFamily: "Inter_500Medium" },
