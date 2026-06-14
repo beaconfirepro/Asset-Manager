@@ -141,14 +141,14 @@ export default function SeriesDetailScreen() {
   if (!series) {
     return (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <Text style={{ color: colors.mutedForeground }}>Series not found.</Text>
+        <Text style={{ color: colors.mutedForeground }}>Contract not found.</Text>
       </View>
     );
   }
 
   const handleDelete = () => {
     Alert.alert(
-      "Delete Series?",
+      "Delete Contract?",
       "Future visits will be cancelled. Past visit records are preserved.",
       [
         { text: "Cancel", style: "cancel" },

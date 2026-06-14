@@ -148,7 +148,7 @@ export function useDashboard() {
           actionQueue.push({
             id: `series-${s.id}`,
             type: "DUE_SOON",
-            title: "Booked Series Active",
+            title: "Booked Contracts Active",
             subtitle: s.name,
             href: "/assets",
             severity: "low",

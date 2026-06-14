@@ -19,7 +19,7 @@ export function RecurringRevenueCard({ booked, potential }: Props) {
 
   return (
     <Card>
-      <CardHeader title="Recurring Revenue" subtitle="Inspection series" />
+      <CardHeader title="Recurring Revenue" subtitle="ITM contracts" />
       <CardContent>
         <Text style={[styles.bookedAmt, { color: colors.success, fontFamily: "Inter_700Bold" }]}>
           {fmt(booked)}

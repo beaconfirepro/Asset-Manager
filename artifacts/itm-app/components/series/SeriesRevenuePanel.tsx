@@ -26,19 +26,19 @@ export function SeriesRevenuePanel({ series }: Props) {
 
   return (
     <Card>
-      <CardHeader title="Revenue Summary" subtitle={`${series.length} series total`} />
+      <CardHeader title="Revenue Summary" subtitle={`${series.length} contracts total`} />
       <CardContent>
         <View style={styles.row}>
           <View style={styles.col}>
             <Text style={[styles.amtLabel, { color: colors.mutedForeground }]}>Booked ARR</Text>
             <Text style={[styles.amt, { color: colors.success, fontFamily: "Inter_700Bold" }]}>{fmt(bookedTotal)}</Text>
-            <Text style={[styles.count, { color: colors.mutedForeground }]}>{booked.length} series</Text>
+            <Text style={[styles.count, { color: colors.mutedForeground }]}>{booked.length} contracts</Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <View style={styles.col}>
             <Text style={[styles.amtLabel, { color: colors.mutedForeground }]}>Potential</Text>
             <Text style={[styles.amt, { color: colors.warning, fontFamily: "Inter_700Bold" }]}>{fmt(unbookedTotal)}</Text>
-            <Text style={[styles.count, { color: colors.mutedForeground }]}>{unbooked.length} series</Text>
+            <Text style={[styles.count, { color: colors.mutedForeground }]}>{unbooked.length} contracts</Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <View style={styles.col}>
@@ -55,7 +55,7 @@ export function SeriesRevenuePanel({ series }: Props) {
         {booked.length > 0 && (
           <View style={styles.table}>
             <Text style={[styles.tableHeader, { color: colors.mutedForeground, borderBottomColor: colors.border }]}>
-              Booked Series
+              Booked Contracts
             </Text>
             {booked.map((s) => (
               <View key={s.id} style={[styles.tableRow, { borderBottomColor: colors.border }]}>

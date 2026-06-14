@@ -100,7 +100,7 @@ export function InspectionSeriesFormModal({
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert("Validation", "Series name is required.");
+      Alert.alert("Validation", "Contract name is required.");
       return;
     }
     const freq = parseInt(frequencyDays, 10);
@@ -130,16 +130,16 @@ export function InspectionSeriesFormModal({
       });
       onClose();
     } catch {
-      Alert.alert("Error", "Failed to save series. Please try again.");
+      Alert.alert("Error", "Failed to save contract. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal visible={visible} onClose={onClose} title={mode === "create" ? "New Inspection Series" : "Edit Series"}>
+    <Modal visible={visible} onClose={onClose} title={mode === "create" ? "New ITM Contract" : "Edit Contract"}>
       <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 480 }}>
-        <LabeledInput label="Series Name *" value={name} onChangeText={setName} placeholder="e.g. Quarterly NFPA 25 — Building A" />
+        <LabeledInput label="Contract Name *" value={name} onChangeText={setName} placeholder="e.g. Quarterly NFPA 25 — Building A" />
 
         {assetOptions.length > 0 && (
           <View style={styles.field}>
@@ -222,7 +222,7 @@ export function InspectionSeriesFormModal({
       <View style={styles.actions}>
         <Button label="Cancel" variant="outline" onPress={onClose} style={styles.actionBtn} />
         <Button
-          label={loading ? "Saving…" : mode === "create" ? "Create Series" : "Save Changes"}
+          label={loading ? "Saving…" : mode === "create" ? "Create Contract" : "Save Changes"}
           onPress={handleSubmit}
           disabled={loading}
           style={styles.actionBtn}

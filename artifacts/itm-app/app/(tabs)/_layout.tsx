@@ -22,7 +22,7 @@ function NativeTabLayout() {
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="series">
         <Icon sf={{ default: "repeat", selected: "repeat.1" }} />
-        <Label>Series</Label>
+        <Label>Contracts</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="calendar">
         <Icon sf={{ default: "calendar", selected: "calendar" }} />
@@ -102,7 +102,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="series"
         options={{
-          title: "Series",
+          title: "Contracts",
           headerShown: false,
           tabBarIcon: ({ color }) =>
             isIOS ? (

@@ -13,8 +13,8 @@ export default function SeriesLayout() {
         headerShadowVisible: false,
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Inspection Series" }} />
-      <Stack.Screen name="[id]" options={{ title: "Series Detail" }} />
+      <Stack.Screen name="index" options={{ title: "ITM Contracts" }} />
+      <Stack.Screen name="[id]" options={{ title: "Contract Detail" }} />
     </Stack>
   );
 }

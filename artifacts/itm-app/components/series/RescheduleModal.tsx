@@ -57,7 +57,7 @@ export function RescheduleModal({ visible, onClose, onConfirm, currentDate, futu
           <View style={[styles.shiftInfo, { backgroundColor: colors.warning + "18", borderColor: colors.warning + "44" }]}>
             <Text style={[styles.shiftText, { color: colors.warning }]}>
               {futureShiftCount} future visit{futureShiftCount !== 1 ? "s" : ""} will auto-shift{" "}
-              {deltaDays > 0 ? `forward ${deltaDays}` : `back ${Math.abs(deltaDays)}`} day{Math.abs(deltaDays) !== 1 ? "s" : ""} to maintain series cadence.
+              {deltaDays > 0 ? `forward ${deltaDays}` : `back ${Math.abs(deltaDays)}`} day{Math.abs(deltaDays) !== 1 ? "s" : ""} to maintain contract cadence.
             </Text>
           </View>
         )}

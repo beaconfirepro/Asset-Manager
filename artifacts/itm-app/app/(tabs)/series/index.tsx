@@ -110,11 +110,11 @@ export default function SeriesListScreen() {
         ListEmptyComponent={
           <EmptyState
             icon="repeat"
-            title="No inspection series"
+            title="No ITM contracts"
             description={
               filterTab !== "all"
-                ? "No series match the selected filter."
-                : "Tap + to create your first recurring inspection series."
+                ? "No contracts match the selected filter."
+                : "Tap + to create your first recurring ITM contract."
             }
           />
         }
