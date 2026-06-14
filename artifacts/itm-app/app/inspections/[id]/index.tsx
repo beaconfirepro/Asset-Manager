@@ -39,7 +39,6 @@ export default function InspectionWorkspaceScreen() {
   const { orgId, session } = useAuth();
 
   const progressAnim = useRef(new Animated.Value(0)).current;
-  const [reportedDeficiencies, setReportedDeficiencies] = useState<Set<string>>(new Set());
   const [gpsLoading, setGpsLoading] = useState(false);
 
   const { data: allSchedules = [] } = useInspectionSchedules();
@@ -91,6 +90,16 @@ export default function InspectionWorkspaceScreen() {
     [result?.form_data],
   );
 
+  const reportedDeficiencies = useMemo(() => {
+    const set = new Set<string>();
+    for (const key of Object.keys(formData)) {
+      if (key.startsWith("_def_enqueued_") && formData[key] === true) {
+        set.add(key.replace("_def_enqueued_", ""));
+      }
+    }
+    return set;
+  }, [formData]);
+
   const progress = useMemo(() => computeProgress(schema, formData), [schema, formData]);
 
   useEffect(() => {
@@ -118,7 +127,6 @@ export default function InspectionWorkspaceScreen() {
         resultId: result.id,
         field,
         answer,
-        currentFormData: result.form_data,
         hubspotAssetId: result.hubspot_asset_id,
       });
       setResult((prev) =>
@@ -144,7 +152,6 @@ export default function InspectionWorkspaceScreen() {
         description,
         severity,
       });
-      setReportedDeficiencies((prev) => new Set([...prev, field.id]));
     },
     [result, formData, enqueueDeficiency],
   );

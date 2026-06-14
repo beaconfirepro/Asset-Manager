@@ -137,7 +137,6 @@ type SaveAnswerParams = {
   resultId: string;
   field: FormField;
   answer: string | boolean | string[] | null;
-  currentFormData: string;
   hubspotAssetId: string;
 };
 
@@ -150,7 +149,12 @@ export function useSaveAnswer() {
       const db = await getDb();
       const now = new Date().toISOString();
 
-      const formData = JSON.parse(params.currentFormData) as Record<string, unknown>;
+      const [latestResult] = await db
+        .select()
+        .from(inspectionResults)
+        .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
+
+      const formData = JSON.parse(latestResult?.form_data ?? "{}") as Record<string, unknown>;
       formData[params.field.id] = params.answer;
 
       const defEnqueuedKey = `_def_enqueued_${params.field.id}`;
