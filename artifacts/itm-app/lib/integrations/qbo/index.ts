@@ -1,4 +1,4 @@
-function genId() { return Date.now().toString(36) + Math.random().toString(36).substring(2, 9); }
+import { enqueue } from "@/lib/sync";
 
 export type QBOInvoiceParams = {
   org_id: string;
@@ -13,49 +13,50 @@ export type QBOInvoiceParams = {
   notes?: string;
 };
 
-export type QBOInvoiceResult = {
-  invoice_id: string;
-  invoice_number: string;
-  status: string;
-  total: number;
+export type OutboxEnqueuedResult = {
+  client_uuid: string;
+  status: "PENDING";
 };
 
 class QBOConnector {
-  async createInvoice(params: QBOInvoiceParams): Promise<QBOInvoiceResult> {
-    console.log("[QBO STUB] createInvoice", params);
-    const total = params.line_items.reduce(
-      (sum, item) => sum + item.quantity * item.unit_price,
-      0,
-    );
-    return {
-      invoice_id: `qbo_inv_${genId()}`,
-      invoice_number: `INV-${Date.now().toString().slice(-6)}`,
-      status: "DRAFT",
-      total,
-    };
+  async createInvoice(params: QBOInvoiceParams): Promise<OutboxEnqueuedResult> {
+    const item = await enqueue({
+      org_id: params.org_id,
+      entity_type: "invoice",
+      entity_id: params.report_id,
+      operation: "CREATE",
+      payload: params as unknown as Record<string, unknown>,
+      target_provider: "QBO",
+    });
+    return { client_uuid: item.client_uuid, status: "PENDING" };
   }
 
-  async voidInvoice(invoiceId: string): Promise<void> {
-    console.log("[QBO STUB] voidInvoice", invoiceId);
+  async voidInvoice(orgId: string, invoiceClientUuid: string): Promise<OutboxEnqueuedResult> {
+    const item = await enqueue({
+      org_id: orgId,
+      entity_type: "invoice",
+      entity_id: invoiceClientUuid,
+      operation: "DELETE",
+      payload: { invoice_client_uuid: invoiceClientUuid },
+      target_provider: "QBO",
+    });
+    return { client_uuid: item.client_uuid, status: "PENDING" };
   }
 
-  async getInvoice(invoiceId: string): Promise<QBOInvoiceResult | null> {
-    console.log("[QBO STUB] getInvoice", invoiceId);
-    return null;
-  }
-
-  async handleOutboxItem(
-    entityType: string,
-    operation: string,
-    payload: Record<string, unknown>,
-  ): Promise<void> {
-    console.log("[QBO STUB] handleOutboxItem", { entityType, operation, payload });
-    await new Promise((r) => setTimeout(r, 100));
+  async updateInvoice(orgId: string, invoiceClientUuid: string, updates: Partial<QBOInvoiceParams>): Promise<OutboxEnqueuedResult> {
+    const item = await enqueue({
+      org_id: orgId,
+      entity_type: "invoice",
+      entity_id: invoiceClientUuid,
+      operation: "UPDATE",
+      payload: { invoice_client_uuid: invoiceClientUuid, ...updates } as Record<string, unknown>,
+      target_provider: "QBO",
+    });
+    return { client_uuid: item.client_uuid, status: "PENDING" };
   }
 }
 
 let connector: QBOConnector | null = null;
-
 export function getQBOConnector(): QBOConnector {
   if (!connector) connector = new QBOConnector();
   return connector;

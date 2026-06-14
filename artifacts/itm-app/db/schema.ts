@@ -44,6 +44,9 @@ export type MaintenanceStatus = typeof MAINTENANCE_STATUS[number];
 export const CALIBRATION_STATUS = ["VALID", "DUE_SOON", "EXPIRED", "OVERDUE"] as const;
 export type CalibrationStatus = typeof CALIBRATION_STATUS[number];
 
+export const CALIBRATION_RESULT = ["PASS", "FAIL", "INCONCLUSIVE"] as const;
+export type CalibrationResultValue = typeof CALIBRATION_RESULT[number];
+
 export const INTEGRATION_PROVIDER = ["HUBSPOT", "CONNECTEAM", "QBO"] as const;
 export type IntegrationProvider = typeof INTEGRATION_PROVIDER[number];
 
@@ -67,13 +70,20 @@ export type AiSuggestionType = typeof AI_SUGGESTION_TYPE[number];
 export const AI_SUGGESTION_STATUS = ["PENDING", "ACCEPTED", "REJECTED"] as const;
 export type AiSuggestionStatus = typeof AI_SUGGESTION_STATUS[number];
 
+export const OUTBOX_PROVIDER = ["HUBSPOT", "CONNECTEAM", "QBO", "ITM"] as const;
+export type OutboxProvider = typeof OUTBOX_PROVIDER[number];
+
+function syncStatusCol() {
+  return text("sync_status").notNull().default("SYNCED");
+}
+
 function baseColumns() {
   return {
     id: text("id").primaryKey(),
     org_id: text("org_id").notNull(),
     created_at: text("created_at").notNull(),
     updated_at: text("updated_at").notNull(),
-    sync_status: text("sync_status").notNull().default("SYNCED"),
+    sync_status: syncStatusCol(),
   };
 }
 
@@ -278,6 +288,7 @@ export const hubspotObjectCache = sqliteTable("hubspot_object_cache", {
   expires_at: text("expires_at").notNull(),
   created_at: text("created_at").notNull(),
   updated_at: text("updated_at").notNull(),
+  sync_status: syncStatusCol(),
 });
 export type HubspotObjectCache = typeof hubspotObjectCache.$inferSelect;
 export type NewHubspotObjectCache = typeof hubspotObjectCache.$inferInsert;
@@ -292,6 +303,7 @@ export const integrationConnections = sqliteTable("integration_connections", {
   last_sync_at: text("last_sync_at"),
   created_at: text("created_at").notNull(),
   updated_at: text("updated_at").notNull(),
+  sync_status: syncStatusCol(),
 });
 export type IntegrationConnection = typeof integrationConnections.$inferSelect;
 export type NewIntegrationConnection = typeof integrationConnections.$inferInsert;
@@ -327,6 +339,7 @@ export const appUsers = sqliteTable("app_users", {
   last_login_at: text("last_login_at"),
   created_at: text("created_at").notNull(),
   updated_at: text("updated_at").notNull(),
+  sync_status: syncStatusCol(),
 });
 export type AppUser = typeof appUsers.$inferSelect;
 export type NewAppUser = typeof appUsers.$inferInsert;
@@ -341,6 +354,7 @@ export const authProviderConfigs = sqliteTable("auth_provider_configs", {
   is_active: integer("is_active", { mode: "boolean" }).notNull().default(true),
   created_at: text("created_at").notNull(),
   updated_at: text("updated_at").notNull(),
+  sync_status: syncStatusCol(),
 });
 export type AuthProviderConfig = typeof authProviderConfigs.$inferSelect;
 export type NewAuthProviderConfig = typeof authProviderConfigs.$inferInsert;

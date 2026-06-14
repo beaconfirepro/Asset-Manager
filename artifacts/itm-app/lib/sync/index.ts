@@ -1,16 +1,13 @@
-import { and, eq, lt } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { syncOutboxItems, type NewSyncOutboxItem, type SyncOutboxItem } from "@/db/schema";
 import { getITMApiClient } from "@/lib/api";
-import { getHubSpotConnector } from "@/lib/integrations/hubspot";
-import { getConnecteamConnector } from "@/lib/integrations/connecteam";
-import { getQBOConnector } from "@/lib/integrations/qbo";
 
 function nowIso(): string {
   return new Date().toISOString();
 }
 
-function genId(): string {
+export function genId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
 }
 
@@ -27,6 +24,7 @@ export type EnqueueParams = {
 export async function enqueue(params: EnqueueParams): Promise<SyncOutboxItem> {
   const db = await getDb();
   const now = nowIso();
+  const client_uuid = params.client_uuid ?? genId();
   const item: NewSyncOutboxItem = {
     id: genId(),
     org_id: params.org_id,
@@ -35,7 +33,7 @@ export async function enqueue(params: EnqueueParams): Promise<SyncOutboxItem> {
     operation: params.operation,
     payload: JSON.stringify(params.payload),
     target_provider: params.target_provider ?? "ITM",
-    client_uuid: params.client_uuid ?? genId(),
+    client_uuid,
     status: "PENDING",
     attempts: 0,
     last_attempt_at: null,
@@ -44,7 +42,7 @@ export async function enqueue(params: EnqueueParams): Promise<SyncOutboxItem> {
     updated_at: now,
   };
   await db.insert(syncOutboxItems).values(item);
-  return item as unknown as SyncOutboxItem;
+  return item as SyncOutboxItem;
 }
 
 export async function drainOutbox(orgId: string): Promise<void> {
@@ -91,21 +89,13 @@ export async function drainOutbox(orgId: string): Promise<void> {
 
 async function dispatchOutboxItem(item: SyncOutboxItem): Promise<void> {
   const payload = JSON.parse(item.payload);
-  const provider = item.target_provider;
-
-  if (provider === "HUBSPOT") {
-    const hs = getHubSpotConnector();
-    await hs.handleOutboxItem(item.entity_type, item.operation, payload);
-  } else if (provider === "CONNECTEAM") {
-    const ct = getConnecteamConnector();
-    await ct.handleOutboxItem(item.entity_type, item.operation, payload);
-  } else if (provider === "QBO") {
-    const qbo = getQBOConnector();
-    await qbo.handleOutboxItem(item.entity_type, item.operation, payload);
-  } else {
-    const api = getITMApiClient();
-    await api.syncEntity(item.entity_type, item.operation, payload, item.client_uuid);
-  }
+  const api = getITMApiClient();
+  await api.syncEntity(
+    item.entity_type,
+    item.operation,
+    { ...payload, _target_provider: item.target_provider },
+    item.client_uuid,
+  );
 }
 
 export async function getPendingCount(orgId: string): Promise<number> {

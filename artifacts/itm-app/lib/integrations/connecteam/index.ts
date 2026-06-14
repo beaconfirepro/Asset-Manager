@@ -1,4 +1,4 @@
-function genId() { return Date.now().toString(36) + Math.random().toString(36).substring(2, 9); }
+import { enqueue } from "@/lib/sync";
 
 export type ConnecteamShiftParams = {
   org_id: string;
@@ -11,40 +11,50 @@ export type ConnecteamShiftParams = {
   notes?: string;
 };
 
-export type ConnecteamShiftResult = {
-  shift_id: string;
-  status: string;
+export type OutboxEnqueuedResult = {
+  client_uuid: string;
+  status: "PENDING";
 };
 
 class ConnecteamConnector {
-  async createCrewShift(params: ConnecteamShiftParams): Promise<ConnecteamShiftResult> {
-    console.log("[Connecteam STUB] createCrewShift", params);
-    return {
-      shift_id: `ct_shift_${genId()}`,
-      status: "SCHEDULED",
-    };
+  async createCrewShift(params: ConnecteamShiftParams): Promise<OutboxEnqueuedResult> {
+    const item = await enqueue({
+      org_id: params.org_id,
+      entity_type: "crew_shift",
+      entity_id: params.maintenance_record_id,
+      operation: "CREATE",
+      payload: params as unknown as Record<string, unknown>,
+      target_provider: "CONNECTEAM",
+    });
+    return { client_uuid: item.client_uuid, status: "PENDING" };
   }
 
-  async cancelShift(shiftId: string): Promise<void> {
-    console.log("[Connecteam STUB] cancelShift", shiftId);
+  async cancelShift(orgId: string, shiftClientUuid: string): Promise<OutboxEnqueuedResult> {
+    const item = await enqueue({
+      org_id: orgId,
+      entity_type: "crew_shift",
+      entity_id: shiftClientUuid,
+      operation: "DELETE",
+      payload: { shift_client_uuid: shiftClientUuid },
+      target_provider: "CONNECTEAM",
+    });
+    return { client_uuid: item.client_uuid, status: "PENDING" };
   }
 
-  async updateShift(shiftId: string, updates: Partial<ConnecteamShiftParams>): Promise<void> {
-    console.log("[Connecteam STUB] updateShift", { shiftId, updates });
-  }
-
-  async handleOutboxItem(
-    entityType: string,
-    operation: string,
-    payload: Record<string, unknown>,
-  ): Promise<void> {
-    console.log("[Connecteam STUB] handleOutboxItem", { entityType, operation, payload });
-    await new Promise((r) => setTimeout(r, 100));
+  async updateShift(orgId: string, shiftClientUuid: string, updates: Partial<ConnecteamShiftParams>): Promise<OutboxEnqueuedResult> {
+    const item = await enqueue({
+      org_id: orgId,
+      entity_type: "crew_shift",
+      entity_id: shiftClientUuid,
+      operation: "UPDATE",
+      payload: { shift_client_uuid: shiftClientUuid, ...updates } as Record<string, unknown>,
+      target_provider: "CONNECTEAM",
+    });
+    return { client_uuid: item.client_uuid, status: "PENDING" };
   }
 }
 
 let connector: ConnecteamConnector | null = null;
-
 export function getConnecteamConnector(): ConnecteamConnector {
   if (!connector) connector = new ConnecteamConnector();
   return connector;
