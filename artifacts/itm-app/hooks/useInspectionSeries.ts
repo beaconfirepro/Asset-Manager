@@ -160,6 +160,10 @@ export function useDeleteSeries() {
         payload: { id: seriesId },
         target_provider: "ITM",
       });
+
+      await db
+        .delete(inspectionSeries)
+        .where(and(eq(inspectionSeries.id, seriesId), eq(inspectionSeries.org_id, orgId)));
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["inspection-series", orgId] });

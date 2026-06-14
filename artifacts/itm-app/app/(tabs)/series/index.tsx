@@ -13,6 +13,7 @@ import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
 import { useInspectionSeries, useCreateSeries } from "@/hooks/useInspectionSeries";
 import { useInspectionSchedules } from "@/hooks/useInspectionSchedules";
+import { useAssets } from "@/hooks/useAssets";
 import { SeriesCard } from "@/components/series/SeriesCard";
 import { SeriesRevenuePanel } from "@/components/series/SeriesRevenuePanel";
 import { InspectionSeriesFormModal } from "@/components/series/InspectionSeriesFormModal";
@@ -29,7 +30,10 @@ export default function SeriesListScreen() {
 
   const { data: series = [], isLoading, refetch } = useInspectionSeries();
   const { data: allSchedules = [] } = useInspectionSchedules();
+  const { data: assets = [] } = useAssets();
   const createSeries = useCreateSeries();
+
+  const assetOptions = assets.map((a) => ({ id: a.id, name: a.name }));
 
   const filtered = useMemo(() => {
     if (filterTab === "booked") return series.filter((s) => s.is_booked);
@@ -135,6 +139,7 @@ export default function SeriesListScreen() {
         visible={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         mode="create"
+        assetOptions={assetOptions}
         onSubmit={async (data) => {
           await createSeries.mutateAsync(data);
         }}

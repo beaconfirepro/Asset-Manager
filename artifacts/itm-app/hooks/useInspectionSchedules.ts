@@ -75,23 +75,28 @@ export function useRescheduleVisit() {
           .toISOString()
           .slice(0, 10);
 
+        const isTarget = sched.id === params.scheduleId;
+
         await db
           .update(inspectionSchedules)
           .set({
             scheduled_date: shifted,
-            rescheduled_from: sched.id === params.scheduleId ? params.oldDate : sched.rescheduled_from,
-            notes: sched.id === params.scheduleId ? (params.reason ?? null) : sched.notes,
+            rescheduled_from: isTarget ? params.oldDate : sched.rescheduled_from,
+            notes: isTarget ? (params.reason ?? null) : sched.notes,
             updated_at: now,
             sync_status: "PENDING",
           })
           .where(eq(inspectionSchedules.id, sched.id));
+
+        const outboxPayload: Record<string, unknown> = { scheduled_date: shifted };
+        if (isTarget) outboxPayload.rescheduled_from = params.oldDate;
 
         await enqueue({
           org_id: orgId,
           entity_type: "inspection_schedule",
           entity_id: sched.id,
           operation: "UPDATE",
-          payload: { scheduled_date: shifted, rescheduled_from: params.oldDate },
+          payload: outboxPayload,
           target_provider: "ITM",
         });
       }

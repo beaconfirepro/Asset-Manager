@@ -17,6 +17,7 @@ import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
 import { useInspectionSeries, useUpdateSeries, useDeleteSeries } from "@/hooks/useInspectionSeries";
 import { useInspectionSchedules, useRescheduleVisit } from "@/hooks/useInspectionSchedules";
+import { useAssets } from "@/hooks/useAssets";
 import { InspectionSeriesFormModal } from "@/components/series/InspectionSeriesFormModal";
 import { RescheduleModal } from "@/components/series/RescheduleModal";
 import { Badge } from "@/components/ui/Badge";
@@ -99,6 +100,8 @@ export default function SeriesDetailScreen() {
 
   const { data: allSeries = [], isLoading: seriesLoading, refetch } = useInspectionSeries();
   const { data: schedules = [], isLoading: schLoading } = useInspectionSchedules(id);
+  const { data: assets = [] } = useAssets();
+  const assetOptions = assets.map((a) => ({ id: a.id, name: a.name }));
   const updateSeries = useUpdateSeries();
   const deleteSeries = useDeleteSeries();
   const rescheduleVisit = useRescheduleVisit();
@@ -245,6 +248,7 @@ export default function SeriesDetailScreen() {
         onClose={() => setShowEditModal(false)}
         mode="edit"
         initialValues={series}
+        assetOptions={assetOptions}
         onSubmit={async (data) => {
           await updateSeries.mutateAsync({ id: series.id, data });
         }}
