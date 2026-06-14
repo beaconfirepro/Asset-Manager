@@ -47,7 +47,7 @@ export async function signInWithProvider(
   const authProvider = new EntraIDProvider({
     clientId: config.client_id,
     tenantId: config.tenant_id ?? "common",
-    scopes: config.scopes.split(",").map((s) => s.trim()),
+    scopes: config.scopes.split(/[\s,]+/).filter(Boolean),
   });
 
   const result = await authProvider.signIn();

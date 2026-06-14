@@ -56,7 +56,7 @@ export class EntraIDProvider {
       usePKCE: false,
     });
 
-    const result = await request.promptAsync(discovery, { useProxy: true });
+    const result = await request.promptAsync(discovery);
 
     if (result.type !== "success" || !result.params.access_token) {
       if (result.type === "cancel" || result.type === "dismiss") return null;

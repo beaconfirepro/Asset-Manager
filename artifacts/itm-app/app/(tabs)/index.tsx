@@ -97,7 +97,7 @@ export default function DashboardScreen() {
         </Card>
       ))}
 
-      <Card style={[styles.nextCard, { borderColor: colors.primary + "44" }]}>
+      <Card style={{ ...styles.nextCard, borderColor: colors.primary + "44" }}>
         <CardHeader title="Next: Phase 1" subtitle="Asset Registry + Compliance Dashboard" />
         <CardContent>
           <Text style={[styles.heroDesc, { color: colors.mutedForeground }]}>

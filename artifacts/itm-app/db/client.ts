@@ -262,6 +262,7 @@ CREATE TABLE IF NOT EXISTS sync_outbox_items (
   target_provider TEXT CHECK (sync_outbox_items.target_provider IS NULL OR sync_outbox_items.target_provider IN (${OUTBOX_PROVIDERS})),
   client_uuid TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'PENDING' ${SYNC_STATUS_CHECK("sync_outbox_items.status")},
+  sync_status TEXT NOT NULL DEFAULT 'SYNCED' ${SYNC_STATUS_CHECK("sync_outbox_items.sync_status")},
   attempts INTEGER NOT NULL DEFAULT 0,
   last_attempt_at TEXT,
   error TEXT,

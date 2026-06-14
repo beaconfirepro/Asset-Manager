@@ -318,6 +318,7 @@ export const syncOutboxItems = sqliteTable("sync_outbox_items", {
   target_provider: text("target_provider"),
   client_uuid: text("client_uuid").notNull(),
   status: text("status").notNull().default("PENDING"),
+  sync_status: text("sync_status").notNull().default("SYNCED"),
   attempts: integer("attempts").notNull().default(0),
   last_attempt_at: text("last_attempt_at"),
   error: text("error"),
