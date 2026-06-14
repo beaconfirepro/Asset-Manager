@@ -111,7 +111,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <ScreenWrapper safeBottom={false}>
+    <ScreenWrapper>
     <View
       style={[
         styles.container,
