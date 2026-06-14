@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   list: { padding: 16, paddingBottom: 100 },
   header: { gap: 14, marginBottom: 14 },
-  filterRow: { flexDirection: "row", gap: 8 },
+  filterRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   filterTab: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, borderWidth: 1 },
   filterTabText: { fontSize: 12, fontFamily: "Inter_500Medium" },
   fab: {

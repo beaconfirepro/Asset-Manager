@@ -102,7 +102,7 @@ export default function AssetRegistryScreen() {
       </View>
 
       <Text style={[styles.filterLabel, { color: colors.mutedForeground }]}>Location</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+      <View style={styles.chipRow}>
         {locations.map((l) => (
           <FilterChip
             key={l}
@@ -111,10 +111,10 @@ export default function AssetRegistryScreen() {
             onPress={() => setLocationFilter(l)}
           />
         ))}
-      </ScrollView>
+      </View>
 
       <Text style={[styles.filterLabel, { color: colors.mutedForeground }]}>System Type</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+      <View style={styles.chipRow}>
         {SYSTEM_TYPES.map((t) => (
           <FilterChip
             key={t}
@@ -123,10 +123,10 @@ export default function AssetRegistryScreen() {
             onPress={() => setSystemTypeFilter(t)}
           />
         ))}
-      </ScrollView>
+      </View>
 
       <Text style={[styles.filterLabel, { color: colors.mutedForeground }]}>Compliance Status</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+      <View style={styles.chipRow}>
         {COMPLIANCE_STATUSES.map((s) => (
           <FilterChip
             key={s}
@@ -135,7 +135,7 @@ export default function AssetRegistryScreen() {
             onPress={() => setStatusFilter(s)}
           />
         ))}
-      </ScrollView>
+      </View>
 
       {isLoading ? (
         <View style={styles.loading}>
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     marginBottom: -4,
     marginTop: 2,
   },
-  chipRow: { flexDirection: "row", gap: 6, paddingVertical: 4 },
+  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, paddingVertical: 4 },
   chip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, borderWidth: 1 },
   chipText: { fontSize: 12, fontFamily: "Inter_500Medium" },
   loading: { paddingVertical: 40, alignItems: "center" },

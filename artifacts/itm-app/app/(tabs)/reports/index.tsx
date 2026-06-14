@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useReports, type ReportWithResult } from "@/hooks/useReports";
@@ -45,6 +46,7 @@ function ReportRow({ report, onPress }: { report: ReportWithResult; onPress: () 
 export default function ReportsIndexScreen() {
   const colors = useColors();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const s = styles(colors);
 
   const { data: reports = [], isLoading } = useReports();
@@ -65,7 +67,7 @@ export default function ReportsIndexScreen() {
 
   return (
     <View style={s.container}>
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: insets.top + 12 }]}>
         <Text style={s.pageTitle}>Reports</Text>
         <Text style={s.pageSubtitle}>{reports.length} total</Text>
       </View>
@@ -120,7 +122,7 @@ function styles(colors: ReturnType<typeof useColors>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background },
-    header: { paddingHorizontal: 20, paddingTop: 52, paddingBottom: 16 },
+    header: { paddingHorizontal: 20, paddingBottom: 16 },
     pageTitle: { fontSize: 28, fontFamily: "Inter_700Bold", color: colors.foreground },
     pageSubtitle: { fontSize: 14, color: colors.mutedForeground, fontFamily: "Inter_400Regular", marginTop: 2 },
     filterBar: { flexDirection: "row", paddingHorizontal: 16, paddingBottom: 12, gap: 8, flexWrap: "wrap" },

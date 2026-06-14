@@ -62,6 +62,7 @@ function ClassicTabLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedForeground,
+        tabBarShowLabel: false,
         headerShown: true,
         headerStyle: { backgroundColor: colors.background },
         headerTitleStyle: { color: colors.foreground, fontFamily: "Inter_600SemiBold" },
@@ -110,7 +111,7 @@ function ClassicTabLayout() {
             isIOS ? (
               <SymbolView name="building.2" tintColor={color} size={24} />
             ) : (
-              <Feather name="layers" size={22} color={color} />
+              <Feather name="box" size={22} color={color} />
             ),
         }}
       />
