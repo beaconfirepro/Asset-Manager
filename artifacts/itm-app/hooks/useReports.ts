@@ -169,13 +169,111 @@ export function useUpdateReport() {
   return useMutation({
     mutationFn: async (params: {
       reportId: string;
-      updates: Partial<Pick<InspectionReport, "status" | "pdf_url" | "report_config" | "title" | "hubspot_customer_id" | "sent_at">>;
+      updates: Partial<Pick<InspectionReport, "status" | "report_config" | "title" | "hubspot_customer_id">>;
     }): Promise<void> => {
       if (!orgId) throw new Error("Not authenticated");
       const db = await getDb();
       await db
         .update(inspectionReports)
         .set({ ...params.updates, updated_at: nowIso(), sync_status: "PENDING" })
+        .where(and(eq(inspectionReports.org_id, orgId), eq(inspectionReports.id, params.reportId)));
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["reports", orgId] });
+      qc.invalidateQueries({ queryKey: ["report", orgId, variables.reportId] });
+    },
+  });
+}
+
+export function useStorePdfUrl() {
+  const { orgId } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { reportId: string; pdfUrl: string }): Promise<void> => {
+      if (!orgId) throw new Error("Not authenticated");
+      const db = await getDb();
+      await db
+        .update(inspectionReports)
+        .set({ pdf_url: params.pdfUrl, updated_at: nowIso(), sync_status: "PENDING" })
+        .where(and(eq(inspectionReports.org_id, orgId), eq(inspectionReports.id, params.reportId)));
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["reports", orgId] });
+      qc.invalidateQueries({ queryKey: ["report", orgId, variables.reportId] });
+    },
+  });
+}
+
+export function useSubmitReportForReview() {
+  const { orgId } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { reportId: string }): Promise<void> => {
+      if (!orgId) throw new Error("Not authenticated");
+      const db = await getDb();
+      await db
+        .update(inspectionReports)
+        .set({ status: "QA_REVIEW", updated_at: nowIso(), sync_status: "PENDING" })
+        .where(and(eq(inspectionReports.org_id, orgId), eq(inspectionReports.id, params.reportId)));
+      await enqueue({
+        org_id: orgId,
+        entity_type: "inspection_report",
+        entity_id: params.reportId,
+        operation: "UPDATE",
+        payload: { status: "QA_REVIEW" },
+        target_provider: "ITM",
+      });
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["reports", orgId] });
+      qc.invalidateQueries({ queryKey: ["report", orgId, variables.reportId] });
+    },
+  });
+}
+
+export function useApproveReport() {
+  const { orgId } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { reportId: string }): Promise<void> => {
+      if (!orgId) throw new Error("Not authenticated");
+      const db = await getDb();
+      await db
+        .update(inspectionReports)
+        .set({ status: "APPROVED", updated_at: nowIso(), sync_status: "PENDING" })
+        .where(and(eq(inspectionReports.org_id, orgId), eq(inspectionReports.id, params.reportId)));
+      await enqueue({
+        org_id: orgId,
+        entity_type: "inspection_report",
+        entity_id: params.reportId,
+        operation: "UPDATE",
+        payload: { status: "APPROVED" },
+        target_provider: "ITM",
+      });
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["reports", orgId] });
+      qc.invalidateQueries({ queryKey: ["report", orgId, variables.reportId] });
+    },
+  });
+}
+
+export function useRejectReport() {
+  const { orgId } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { reportId: string; notes?: string }): Promise<void> => {
+      if (!orgId) throw new Error("Not authenticated");
+      const db = await getDb();
+      const config = await db
+        .select({ report_config: inspectionReports.report_config })
+        .from(inspectionReports)
+        .where(and(eq(inspectionReports.org_id, orgId), eq(inspectionReports.id, params.reportId)));
+      const existingConfig = config[0]?.report_config ?? "{}";
+      const updated = { ...JSON.parse(existingConfig), rejection_notes: params.notes };
+      await db
+        .update(inspectionReports)
+        .set({ status: "DRAFT", report_config: JSON.stringify(updated), updated_at: nowIso(), sync_status: "PENDING" })
         .where(and(eq(inspectionReports.org_id, orgId), eq(inspectionReports.id, params.reportId)));
     },
     onSuccess: (_data, variables) => {
@@ -198,6 +296,10 @@ export function useUpdateQaStatus() {
       if (!orgId) throw new Error("Not authenticated");
       const db = await getDb();
       const now = nowIso();
+      const newResultStatus =
+        params.qaStatus === "APPROVED" ? "APPROVED" :
+        params.qaStatus === "REJECTED" ? "SUBMITTED" :
+        "QA_REVIEW";
       await db
         .update(inspectionResults)
         .set({
@@ -205,7 +307,7 @@ export function useUpdateQaStatus() {
           qa_reviewer_id: params.qaReviewerId ?? null,
           qa_reviewed_at: now,
           qa_notes: params.qaNotes ?? null,
-          status: params.qaStatus === "APPROVED" ? "APPROVED" : params.qaStatus === "REJECTED" ? "SUBMITTED" : "QA_REVIEW",
+          status: newResultStatus,
           updated_at: now,
           sync_status: "PENDING",
         })
@@ -226,21 +328,21 @@ export function useUpdateQaStatus() {
   });
 }
 
-export function useStorePdfUrl() {
+export function useProposalHandoff() {
   const { orgId } = useAuth();
-  const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { reportId: string; pdfUrl: string }): Promise<void> => {
+    mutationFn: async (params: {
+      hubspotCustomerId: string;
+      resultId: string;
+      deficiencySummary: string;
+    }): Promise<void> => {
       if (!orgId) throw new Error("Not authenticated");
-      const db = await getDb();
-      await db
-        .update(inspectionReports)
-        .set({ pdf_url: params.pdfUrl, status: "APPROVED", updated_at: nowIso(), sync_status: "PENDING" })
-        .where(and(eq(inspectionReports.org_id, orgId), eq(inspectionReports.id, params.reportId)));
-    },
-    onSuccess: (_data, variables) => {
-      qc.invalidateQueries({ queryKey: ["reports", orgId] });
-      qc.invalidateQueries({ queryKey: ["report", orgId, variables.reportId] });
+      await getHubSpotConnector().createProposalHandoff({
+        org_id: orgId,
+        hubspot_customer_id: params.hubspotCustomerId,
+        inspection_result_id: params.resultId,
+        deficiency_summary: params.deficiencySummary,
+      });
     },
   });
 }
@@ -253,7 +355,6 @@ export function useSendReport() {
       reportId: string;
       hubspotCustomerId: string;
       pdfUrl: string;
-      message?: string;
       enqueueInvoice?: boolean;
       contractedAmount?: number;
     }): Promise<void> => {
