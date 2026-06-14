@@ -51,34 +51,42 @@ export default function LoginScreen() {
     if (!__DEV__) return;
     setLoading(true);
     try {
-      const db = await getDb();
       const now = nowIso();
       const userId = "dev_user_001";
 
-      const existing = await db
-        .select()
-        .from(appUsers)
-        .where(eq(appUsers.external_id, userId));
+      const devUser = {
+        id: `u_dev_${genId()}`,
+        org_id: ORG_ID,
+        external_id: userId,
+        provider: "MICROSOFT_ENTRA",
+        email: "inspector@beaconfire.com",
+        name: "Dev Inspector",
+        role: "INSPECTOR",
+        avatar_url: null,
+        last_login_at: now,
+        created_at: now,
+        updated_at: now,
+        sync_status: "SYNCED",
+      };
 
-      let user;
-      if (existing.length > 0) {
-        user = existing[0];
-      } else {
-        const newUser = {
-          id: `u_dev_${genId()}`,
-          org_id: ORG_ID,
-          external_id: userId,
-          provider: "MICROSOFT_ENTRA",
-          email: "inspector@beaconfire.com",
-          name: "Dev Inspector",
-          role: "INSPECTOR",
-          avatar_url: null,
-          last_login_at: now,
-          created_at: now,
-          updated_at: now,
-        };
-        await db.insert(appUsers).values(newUser);
-        user = newUser;
+      let user: typeof devUser = devUser;
+
+      // expo-sqlite is unavailable on web; skip the DB and use an in-memory
+      // dev session so the app shell is navigable in the web preview.
+      if (Platform.OS !== "web") {
+        const db = await getDb();
+        const existing = await db
+          .select()
+          .from(appUsers)
+          .where(eq(appUsers.external_id, userId));
+
+        if (existing.length > 0) {
+          user = existing[0] as typeof devUser;
+        } else {
+          const { sync_status: _omit, ...insertUser } = devUser;
+          await db.insert(appUsers).values(insertUser);
+          user = devUser;
+        }
       }
 
       const session: ITMSession = {
@@ -90,7 +98,14 @@ export default function LoginScreen() {
       await saveSession(session);
       setSession(session);
     } catch (err) {
-      Alert.alert("Dev Bypass Error", err instanceof Error ? err.message : String(err));
+      const msg = err instanceof Error ? err.message : String(err);
+      if (Platform.OS === "web") {
+        console.error("[DevBypass]", msg);
+        // eslint-disable-next-line no-alert
+        if (typeof window !== "undefined") window.alert(`Dev Bypass Error: ${msg}`);
+      } else {
+        Alert.alert("Dev Bypass Error", msg);
+      }
     } finally {
       setLoading(false);
     }

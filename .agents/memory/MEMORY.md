@@ -1,3 +1,4 @@
+- [ITM App — web blank screen](itm-web-blank-screen.md) — blank white web preview = a `return null` gate (fonts/isLoading), not a thrown error; don't block render on fonts on web
 - [ITM App — expo-sqlite web stub](itm-expo-sqlite-web.md) — expo-sqlite WASM crashes Metro on web; use platform-specific file to stub it out
 - [ITM App — drizzle-orm Metro dynamic import](itm-drizzle-metro.md) — Metro can't resolve drizzle-orm via `await import()` dynamic syntax; use static top-level imports only
 - [ITM App — package versions for SDK 54](itm-package-versions.md) — pnpm installs latest by default; pin expo-sqlite@~16.0.10, expo-auth-session@~7.0.11, expo-secure-store@~15.0.8, expo-crypto@~15.0.8 for SDK 54
