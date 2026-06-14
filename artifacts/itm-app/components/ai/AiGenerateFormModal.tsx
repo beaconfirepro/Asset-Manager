@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
@@ -44,11 +46,18 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
   const [selectedStandardId, setSelectedStandardId] = useState<string | null>(null);
   const [draft, setDraft] = useState<GeneratedFormDraft | null>(null);
 
+  const [editedName, setEditedName] = useState("");
+  const [removedFieldIds, setRemovedFieldIds] = useState<Set<string>>(new Set());
+
   const { data: standards = [] } = useComplianceStandards();
   const createForm = useCreateInspectionForm();
   const logSuggestion = useCreateAiSuggestion();
 
   const selectedStandard = standards.find((s) => s.id === selectedStandardId);
+
+  const activeFields = draft
+    ? draft.fields.filter((f) => !removedFieldIds.has(f.id))
+    : [];
 
   const handleGenerate = async () => {
     if (!orgId) return;
@@ -61,6 +70,8 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
         selectedStandard?.code ?? selectedSystemType,
       );
       setDraft(result);
+      setEditedName(result.form_name);
+      setRemovedFieldIds(new Set());
       setStage("REVIEW");
     } catch {
       Alert.alert("Error", "Failed to generate form. Please try again.");
@@ -68,31 +79,49 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
     }
   };
 
+  const handleRemoveField = (fieldId: string) => {
+    setRemovedFieldIds((prev) => new Set([...prev, fieldId]));
+  };
+
+  const handleRestoreField = (fieldId: string) => {
+    setRemovedFieldIds((prev) => {
+      const next = new Set(prev);
+      next.delete(fieldId);
+      return next;
+    });
+  };
+
   const handleAccept = async () => {
     if (!draft || !orgId) return;
+    if (activeFields.length === 0) {
+      Alert.alert("No Fields", "Add at least one field before saving.");
+      return;
+    }
     setStage("SAVING");
     try {
       const formSchema = JSON.stringify({
-        title: draft.form_name,
-        fields: draft.fields.map((f) => ({
+        title: editedName.trim() || draft.form_name,
+        fields: activeFields.map((f) => ({
           id: f.id,
           label: f.label,
           type: f.type,
           required: f.required,
-          deficiency_trigger: f.deficiency_trigger ?? false,
+          deficiency_trigger: f.deficiency_trigger,
           options: f.options ?? [],
         })),
       });
 
       const formId = await createForm.mutateAsync({
-        name: draft.form_name,
+        name: editedName.trim() || draft.form_name,
         system_type: draft.system_type,
         version: "1.0",
         form_schema: formSchema,
         is_active: false,
         ai_generated: true,
         deficiency_triggers: JSON.stringify(
-          draft.fields.filter((f) => f.deficiency_trigger).map((f) => f.id),
+          activeFields
+            .filter((f) => !!f.deficiency_trigger)
+            .map((f) => f.id),
         ),
         compliance_standard_id: selectedStandardId ?? null,
       });
@@ -103,7 +132,9 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
           payload: {
             form_id: formId,
             generated_sections: 1,
-            token_count: draft.fields.length * 40,
+            fields_kept: activeFields.length,
+            fields_removed: removedFieldIds.size,
+            token_count: activeFields.length * 40,
             system_type: draft.system_type,
             standard_code: draft.compliance_standard_code,
           },
@@ -142,6 +173,8 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
   const handleReset = () => {
     setStage("INPUT");
     setDraft(null);
+    setEditedName("");
+    setRemovedFieldIds(new Set());
     setSelectedSystemType(SYSTEM_TYPES[0]);
     setSelectedStandardId(null);
   };
@@ -200,7 +233,7 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
           <View style={[styles.aiNotice, { backgroundColor: colors.primary + "10", borderColor: colors.primary + "33" }]}>
             <Feather name="cpu" size={14} color={colors.primary} />
             <Text style={[styles.aiNoticeText, { color: colors.primary }]}>
-              AI will generate a checklist based on NFPA requirements for the selected system type and standard. You review before saving.
+              AI will generate a checklist based on NFPA requirements for the selected system type and standard. Review and edit before saving.
             </Text>
           </View>
 
@@ -226,28 +259,81 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
 
       {(stage === "REVIEW" || stage === "SAVING") && draft && (
         <View style={styles.reviewStage}>
-          <View style={styles.reviewHeader}>
-            <Feather name="file-plus" size={16} color={colors.success} />
-            <Text style={[styles.reviewTitle, { color: colors.foreground }]} numberOfLines={2}>
-              {draft.form_name}
-            </Text>
+          <View style={[styles.nameRow, { borderColor: colors.border, backgroundColor: colors.muted }]}>
+            <Feather name="edit-2" size={13} color={colors.mutedForeground} />
+            <TextInput
+              style={[styles.nameInput, { color: colors.foreground }]}
+              value={editedName}
+              onChangeText={setEditedName}
+              placeholder="Form name"
+              placeholderTextColor={colors.mutedForeground}
+              editable={stage === "REVIEW"}
+            />
           </View>
 
           <View style={styles.reviewMeta}>
             <Badge label={draft.system_type.replace(/_/g, " ")} variant="info" size="sm" />
             {selectedStandard && <Badge label={selectedStandard.code} variant="default" size="sm" />}
-            <Badge label={`${draft.fields.length} fields`} variant="muted" size="sm" />
+            <Badge label={`${activeFields.length} of ${draft.fields.length} fields`} variant="muted" size="sm" />
           </View>
 
           <Text style={[styles.reviewNote, { color: colors.mutedForeground }]}>
-            Review generated fields. The form will be saved as a draft (inactive) — activate it in the form editor when ready.
+            Edit the form name or remove fields before saving. Saved as draft (inactive) — activate in form editor.
           </Text>
 
-          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 240 }}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 260 }}>
             <View style={styles.fieldList}>
-              {draft.fields.map((field, i) => (
-                <FieldPreviewRow key={field.id} field={field} index={i} />
-              ))}
+              {draft.fields.map((field, i) => {
+                const removed = removedFieldIds.has(field.id);
+                return (
+                  <View
+                    key={field.id}
+                    style={[
+                      styles.fieldRow,
+                      {
+                        backgroundColor: removed ? colors.muted : colors.card,
+                        borderColor: removed ? colors.border : colors.border,
+                        opacity: removed ? 0.5 : 1,
+                      },
+                    ]}
+                  >
+                    <View style={styles.fieldLeft}>
+                      <Text style={[styles.fieldIndex, { color: colors.mutedForeground }]}>
+                        {removed ? "—" : i + 1 - [...removedFieldIds].filter((id) => {
+                          const idx = draft.fields.findIndex((f) => f.id === id);
+                          return idx < i;
+                        }).length}
+                      </Text>
+                      <View style={styles.fieldInfo}>
+                        <Text
+                          style={[styles.fieldLabel, { color: removed ? colors.mutedForeground : colors.foreground }]}
+                          numberOfLines={2}
+                        >
+                          {field.label}
+                        </Text>
+                        <View style={styles.fieldMeta}>
+                          <Badge label={field.type} variant="muted" size="sm" />
+                          {field.required && !removed && <Badge label="Required" variant="warning" size="sm" />}
+                          {field.deficiency_trigger && !removed && (
+                            <Badge label="Deficiency" variant="destructive" size="sm" />
+                          )}
+                        </View>
+                      </View>
+                    </View>
+                    {stage === "REVIEW" && (
+                      removed ? (
+                        <Pressable onPress={() => handleRestoreField(field.id)} hitSlop={8}>
+                          <Feather name="rotate-ccw" size={15} color={colors.primary} />
+                        </Pressable>
+                      ) : (
+                        <Pressable onPress={() => handleRemoveField(field.id)} hitSlop={8}>
+                          <Feather name="trash-2" size={15} color={colors.destructive} />
+                        </Pressable>
+                      )
+                    )}
+                  </View>
+                );
+              })}
             </View>
           </ScrollView>
 
@@ -272,40 +358,6 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
   );
 }
 
-function FieldPreviewRow({ field, index }: { field: GeneratedFormField; index: number }) {
-  const colors = useColors();
-  return (
-    <View
-      style={[
-        styles.fieldRow,
-        { backgroundColor: colors.muted, borderColor: colors.border },
-      ]}
-    >
-      <View style={styles.fieldLeft}>
-        <Text style={[styles.fieldIndex, { color: colors.mutedForeground }]}>
-          {index + 1}
-        </Text>
-        <View style={styles.fieldInfo}>
-          <Text style={[styles.fieldLabel, { color: colors.foreground }]} numberOfLines={2}>
-            {field.label}
-          </Text>
-          <View style={styles.fieldMeta}>
-            <Badge
-              label={field.type}
-              variant="muted"
-              size="sm"
-            />
-            {field.required && <Badge label="Required" variant="warning" size="sm" />}
-            {field.deficiency_trigger && (
-              <Badge label="Deficiency" variant="destructive" size="sm" />
-            )}
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   inputStage: { gap: 14 },
   sectionLabel: { fontSize: 13, fontFamily: "Inter_500Medium" },
@@ -318,13 +370,13 @@ const styles = StyleSheet.create({
   generatingText: { fontSize: 16, fontFamily: "Inter_600SemiBold" },
   generatingSubtext: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center" },
   reviewStage: { gap: 12 },
-  reviewHeader: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
-  reviewTitle: { fontSize: 15, fontFamily: "Inter_600SemiBold", flex: 1, lineHeight: 20 },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
+  nameInput: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium" },
   reviewMeta: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   reviewNote: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17 },
   fieldList: { gap: 6 },
-  fieldRow: { borderRadius: 8, borderWidth: 1, padding: 10 },
-  fieldLeft: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
+  fieldRow: { borderRadius: 8, borderWidth: 1, padding: 10, flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  fieldLeft: { flex: 1, flexDirection: "row", gap: 10, alignItems: "flex-start" },
   fieldIndex: { fontSize: 12, fontFamily: "Inter_500Medium", width: 20, marginTop: 1 },
   fieldInfo: { flex: 1, gap: 4 },
   fieldLabel: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },

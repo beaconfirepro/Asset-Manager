@@ -1,9 +1,9 @@
 export type GeneratedFormField = {
   id: string;
   label: string;
-  type: "boolean" | "number" | "text" | "select";
+  type: "pass_fail" | "yes_no" | "text" | "number" | "select" | "checkbox";
   required: boolean;
-  deficiency_trigger?: boolean;
+  deficiency_trigger?: string;
   options?: string[];
 };
 
@@ -31,41 +31,41 @@ export type CodeReferenceResult = {
 
 const STUB_FORM_TEMPLATES: Record<string, GeneratedFormField[]> = {
   FIRE_SPRINKLER: [
-    { id: "visual_no_obstructions", label: "No obstructions within 18\" of sprinkler heads", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "visual_no_corrosion", label: "No visible corrosion, scale, or paint on heads", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "static_pressure_psi", label: "Static pressure reading (psi)", type: "number", required: true, deficiency_trigger: true },
-    { id: "residual_pressure_psi", label: "Residual pressure at most remote outlet (psi)", type: "number", required: true, deficiency_trigger: true },
-    { id: "valves_correct_position", label: "All control valves in correct open position", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "gauges_functional", label: "Gauges functioning and within acceptable range", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "alarm_valve_tested", label: "Alarm valve tested and operational", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "signage_present", label: "Required NFPA signage posted and legible", type: "boolean", required: false },
+    { id: "visual_no_obstructions", label: "No obstructions within 18\" of sprinkler heads", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "visual_no_corrosion", label: "No visible corrosion, scale, or paint on heads", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "static_pressure_psi", label: "Static pressure reading (psi)", type: "number", required: true },
+    { id: "residual_pressure_psi", label: "Residual pressure at most remote outlet (psi)", type: "number", required: true },
+    { id: "valves_correct_position", label: "All control valves in correct open position", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "gauges_functional", label: "Gauges functioning and within acceptable range", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "alarm_valve_tested", label: "Alarm valve tested and operational", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "signage_present", label: "Required NFPA signage posted and legible", type: "yes_no", required: false, deficiency_trigger: "NO" },
     { id: "inspector_notes", label: "Additional inspector observations", type: "text", required: false },
   ],
   FIRE_ALARM: [
-    { id: "panel_no_faults", label: "Main control panel shows no active faults", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "battery_backup_ok", label: "Battery backup tested — holds charge under load", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "smoke_detector_sensitivity", label: "Smoke detector sensitivity within listed range (%/ft)", type: "number", required: true, deficiency_trigger: true },
-    { id: "pull_stations_accessible", label: "All pull stations accessible and unobstructed", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "notification_appliances_ok", label: "Horns/strobes tested — audible/visual output verified", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "monitoring_verified", label: "Central station monitoring connection verified", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "records_on_site", label: "Previous inspection records available on site", type: "boolean", required: false },
+    { id: "panel_no_faults", label: "Main control panel shows no active faults", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "battery_backup_ok", label: "Battery backup tested — holds charge under load", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "smoke_detector_sensitivity", label: "Smoke detector sensitivity within listed range (%/ft)", type: "number", required: true },
+    { id: "pull_stations_accessible", label: "All pull stations accessible and unobstructed", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "notification_appliances_ok", label: "Horns/strobes tested — audible/visual output verified", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "monitoring_verified", label: "Central station monitoring connection verified", type: "yes_no", required: true, deficiency_trigger: "NO" },
+    { id: "records_on_site", label: "Previous inspection records available on site", type: "yes_no", required: false },
     { id: "inspector_notes", label: "Additional inspector observations", type: "text", required: false },
   ],
   KITCHEN_HOOD: [
-    { id: "hood_clean", label: "Grease filters clean — no buildup exceeding 1/8\"", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "fusible_links_intact", label: "All fusible links intact and not deformed", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "agent_cylinder_pressure", label: "Suppression agent cylinder pressure within range", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "nozzles_unobstructed", label: "All discharge nozzles unobstructed and properly aimed", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "manual_pull_accessible", label: "Manual pull station accessible and labeled", type: "boolean", required: true, deficiency_trigger: true },
-    { id: "gas_valve_interlocked", label: "Gas/electric interlock shuts off on system actuation", type: "boolean", required: true, deficiency_trigger: true },
+    { id: "hood_clean", label: "Grease filters clean — no buildup exceeding 1/8\"", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "fusible_links_intact", label: "All fusible links intact and not deformed", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "agent_cylinder_pressure", label: "Suppression agent cylinder pressure within range", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "nozzles_unobstructed", label: "All discharge nozzles unobstructed and properly aimed", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "manual_pull_accessible", label: "Manual pull station accessible and labeled", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+    { id: "gas_valve_interlocked", label: "Gas/electric interlock shuts off on system actuation", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
     { id: "inspector_notes", label: "Additional inspector observations", type: "text", required: false },
   ],
 };
 
 const DEFAULT_FIELDS: GeneratedFormField[] = [
-  { id: "visual_general", label: "System in good general condition — no visible damage", type: "boolean", required: true, deficiency_trigger: true },
-  { id: "equipment_accessible", label: "All equipment accessible for inspection", type: "boolean", required: true, deficiency_trigger: true },
-  { id: "documentation_on_site", label: "System documentation available on site", type: "boolean", required: false },
+  { id: "visual_general", label: "System in good general condition — no visible damage", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+  { id: "equipment_accessible", label: "All equipment accessible for inspection", type: "pass_fail", required: true, deficiency_trigger: "FAIL" },
+  { id: "documentation_on_site", label: "System documentation available on site", type: "yes_no", required: false },
   { id: "inspector_notes", label: "Additional inspector observations", type: "text", required: false },
 ];
 
@@ -171,18 +171,26 @@ class ITMApiClient {
   }
 
   async generateForm(
-    _orgId: string,
+    orgId: string,
     systemType: string,
     standardCode: string,
   ): Promise<GeneratedFormDraft> {
-    const systemLabel = systemType.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    const fields = STUB_FORM_TEMPLATES[systemType] ?? DEFAULT_FIELDS;
-    return {
-      form_name: `${standardCode} ${systemLabel} Checklist`,
-      system_type: systemType,
-      compliance_standard_code: standardCode,
-      fields,
-    };
+    try {
+      const result = await this.fetch("/itm/forms/ai-generate", {
+        method: "POST",
+        body: JSON.stringify({ org_id: orgId, system_type: systemType, standard_code: standardCode }),
+      });
+      return result as GeneratedFormDraft;
+    } catch {
+      const systemLabel = systemType.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      const fields = STUB_FORM_TEMPLATES[systemType] ?? DEFAULT_FIELDS;
+      return {
+        form_name: `${standardCode} ${systemLabel} Checklist`,
+        system_type: systemType,
+        compliance_standard_code: standardCode,
+        fields,
+      };
+    }
   }
 
   async detectCodeUpdates(_orgId: string): Promise<CodeUpdateResult[]> {
