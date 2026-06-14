@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/"
+title = "ITM — Inspection, Testing & Maintenance"
+version = "1.0.0"
+id = "artifacts/itm-app"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/" ]
+localPort = 24272
+
+[services.development]
+run = "pnpm --filter @workspace/itm-app run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/itm-app", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/itm-app", "run", "serve" ]
+
+[services.env]
+PORT = "24272"
+BASE_PATH = "/"
