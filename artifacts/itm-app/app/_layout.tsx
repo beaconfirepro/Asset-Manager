@@ -16,6 +16,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { OfflineProvider } from "@/context/OfflineContext";
+import { useDueProcessor } from "@/hooks/useDueProcessor";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,6 +28,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const { session, isLoading } = useAuth();
   const router = useRouter();
   const segments = useSegments();
+
+  useDueProcessor();
 
   useEffect(() => {
     if (isLoading) return;

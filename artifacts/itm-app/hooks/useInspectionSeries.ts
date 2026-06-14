@@ -4,14 +4,12 @@ import { Platform } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { getDb } from "@/db/client";
 import {
-  inspectionSchedules,
   inspectionSeries,
   type InspectionSeries,
   type NewInspectionSeries,
 } from "@/db/schema";
-import { getHubSpotConnector } from "@/lib/integrations/hubspot";
-import { generateScheduleDates } from "@/lib/series/generateSchedules";
 import { enqueue, genId } from "@/lib/sync";
+import { reconcileSchedules } from "@/lib/series/scheduleReconciler";
 
 export function useInspectionSeries() {
   const { orgId } = useAuth();
@@ -41,10 +39,20 @@ export function useCreateSeries() {
       const now = new Date().toISOString();
       const seriesId = genId();
 
-      const newSeries: NewInspectionSeries = {
+      const newSeries: InspectionSeries = {
         id: seriesId,
         org_id: orgId,
-        ...data,
+        name: data.name,
+        hubspot_asset_id: data.hubspot_asset_id,
+        system_type: data.system_type,
+        frequency_days: data.frequency_days,
+        generation_horizon_days: data.generation_horizon_days ?? 180,
+        starts_at: data.starts_at,
+        ends_at: data.ends_at ?? null,
+        hubspot_service_team_id: data.hubspot_service_team_id ?? null,
+        is_booked: data.is_booked ?? false,
+        contracted_amount: data.contracted_amount ?? null,
+        notes: data.notes ?? null,
         created_at: now,
         updated_at: now,
         sync_status: "PENDING",
@@ -60,38 +68,7 @@ export function useCreateSeries() {
         target_provider: "ITM",
       });
 
-      const dates = generateScheduleDates(newSeries as InspectionSeries);
-      const todayIso = new Date().toISOString().slice(0, 10);
-      const connector = getHubSpotConnector();
-
-      for (const date of dates) {
-        const scheduleId = genId();
-        const isDue = date <= todayIso;
-
-        await db.insert(inspectionSchedules).values({
-          id: scheduleId,
-          org_id: orgId,
-          series_id: seriesId,
-          hubspot_asset_id: data.hubspot_asset_id,
-          scheduled_date: date,
-          status: "DRAFT",
-          hubspot_inspection_ticket_id: null,
-          rescheduled_from: null,
-          notes: null,
-          created_at: now,
-          updated_at: now,
-          sync_status: "PENDING",
-        });
-
-        if (isDue) {
-          await connector.createInspectionTicket({
-            org_id: orgId,
-            hubspot_asset_id: data.hubspot_asset_id,
-            schedule_id: scheduleId,
-            scheduled_date: date,
-          });
-        }
-      }
+      await reconcileSchedules(db, orgId, newSeries);
 
       return seriesId;
     },
@@ -126,9 +103,18 @@ export function useUpdateSeries() {
         payload: params.data as Record<string, unknown>,
         target_provider: "ITM",
       });
+
+      const rows = await db
+        .select()
+        .from(inspectionSeries)
+        .where(and(eq(inspectionSeries.id, params.id), eq(inspectionSeries.org_id, orgId)));
+      if (rows[0]) {
+        await reconcileSchedules(db, orgId, rows[0]);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["inspection-series", orgId] });
+      qc.invalidateQueries({ queryKey: ["inspection-schedules", orgId] });
       qc.invalidateQueries({ queryKey: ["dashboard", orgId] });
     },
   });
@@ -145,21 +131,25 @@ export function useDeleteSeries() {
       const now = new Date().toISOString();
       const todayIso = now.slice(0, 10);
 
+      const { inspectionSchedules: schedTable } = await import("@/db/schema");
       const schedules = await db
         .select()
-        .from(inspectionSchedules)
-        .where(
-          and(
-            eq(inspectionSchedules.org_id, orgId),
-            eq(inspectionSchedules.series_id, seriesId),
-          ),
-        );
+        .from(schedTable)
+        .where(and(eq(schedTable.org_id, orgId), eq(schedTable.series_id, seriesId)));
 
       for (const sched of schedules.filter((s) => s.scheduled_date >= todayIso)) {
         await db
-          .update(inspectionSchedules)
+          .update(schedTable)
           .set({ status: "CANCELLED", updated_at: now, sync_status: "PENDING" })
-          .where(eq(inspectionSchedules.id, sched.id));
+          .where(eq(schedTable.id, sched.id));
+        await enqueue({
+          org_id: orgId,
+          entity_type: "inspection_schedule",
+          entity_id: sched.id,
+          operation: "UPDATE",
+          payload: { status: "CANCELLED" },
+          target_provider: "ITM",
+        });
       }
 
       await enqueue({
