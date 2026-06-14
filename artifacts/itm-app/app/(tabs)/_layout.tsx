@@ -84,7 +84,7 @@ function SideRailLayout() {
               <Text
                 style={[
                   railStyles.railLabel,
-                  { color: active ? colors.tint : "#71717A" },
+                  { color: iconColor },
                 ]}
                 numberOfLines={1}
               >
