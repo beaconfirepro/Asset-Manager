@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ITM (Inspection, Testing &amp; Maintenance) — Layout Wireframes</title>
+<style>
+body { font-family: monospace; font-size: 12px; background: #fff; color: #111; padding: 20px; }
+h2 { margin: 40px 0 4px; border-bottom: 2px solid #000; padding-bottom: 4px; }
+h3 { margin: 20px 0 4px; color: #555; }
+p.route { font-size: 11px; color: #666; margin: 0 0 4px; }
+table { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
+td { border: 1px solid #999; padding: 6px 8px; vertical-align: top; font-size: 12px; }
+td.label { background: #f5f5f5; text-align: center; vertical-align: middle;
+           color: #888; font-size: 10px; width: 50px; }
+td.zone { background: #eee; text-align: center; vertical-align: middle;
+          font-weight: bold; font-size: 11px; }
+td.global { background: #bbb; text-align: center; vertical-align: middle;
+            font-weight: bold; font-size: 11px; color: #333; }
+td.toggle { background: #d0f0f0; font-size: 11px; }
+td.toggle-head { background: #b0e0e0; font-weight: bold; font-size: 11px;
+                 text-align: center; }
+.context { background: #ffe; border: 1px solid #cc0; padding: 6px 10px;
+           margin: 0 0 12px; font-size: 11px; }
+.context b { color: #990; }
+.page-def { font-size: 11px; margin: 0 0 30px; color: #444; }
+.page-def b { color: #111; }
+table.sub { width: 100%; border-collapse: collapse; margin: 6px 0; }
+table.sub td { border: 1px solid #bbb; padding: 4px 6px; font-size: 11px; }
+table.sub td.sub-zone { background: #f5f5f5; font-weight: bold;
+                        font-size: 10px; text-align: center; }
+.key { margin: 12px 0 30px; font-size: 11px; padding: 8px 12px;
+       border: 1px solid #ccc; background: #fafafa; display: inline-block; }
+.key-swatch { display: inline-block; width: 14px; height: 14px;
+              border: 1px solid #999; vertical-align: middle; margin-right: 4px; }
+</style>
+</head>
+<body>
+
+<h1>ITM (Inspection, Testing &amp; Maintenance) — Layout Wireframes</h1>
+<p>Structural zone reference. Companion to itm_UI_SPEC.md<br>
+Grid: 4 columns (Main Nav, Left Panel, Content, Right Panel) x 6 rows.<br>
+[PSB] = Page Specific Buttons, [PF] = Page Filters — defined below each layout.<br>
+Data marked HubSpot is read via API (reference + cache); ITM owns inspection execution &amp; compliance.</p>
+
+<div class="key">
+  <b>KEY:</b>&nbsp;&nbsp;
+  <span class="key-swatch" style="background:#bbb;"></span> Set globally&nbsp;&nbsp;&nbsp;
+  <span class="key-swatch" style="background:#b0e0e0;"></span> Hidden on toggle click
+</div>
+
+<!-- ============================================================ -->
+<!-- 1. ITM DASHBOARD -->
+<!-- ============================================================ -->
+<h2>1. <i>ITM DASHBOARD</i></h2>
+<p class="route">Route: /itm</p>
+<div class="context"><b>Context: None (module root).</b>
+  Module landing page. Loads org-wide compliance health KPIs, upcoming/overdue inspection rollups,
+  recurring-revenue snapshot, and the action queue for the current org. No route params.</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | ITM Dashboard | [PSB]</td>
+  <td>[PF] | RP Toggle</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">ITM Navigation</td>
+  <td rowspan="2">
+    <table class="sub">
+      <tr><td class="sub-zone">Compliance Health KPIs</td></tr>
+      <tr><td>C-01 ComplianceHealthCard row: % compliant | overdue count | due-soon count | failed-QA count. Click KPI &rarr; filtered Calendar/Asset view.</td></tr>
+    </table>
+    <table class="sub">
+      <tr><td class="sub-zone" style="width:50%">Upcoming Inspections</td><td class="sub-zone" style="width:50%">Overdue Inspections</td></tr>
+      <tr>
+        <td>C-02 UpcomingList: next N schedules (asset, location, due date). Row click &rarr; /itm/calendar.</td>
+        <td>C-03 OverdueList: overdue schedules, red highlight. Row click &rarr; reschedule / workspace.</td>
+      </tr>
+    </table>
+    <table class="sub">
+      <tr><td class="sub-zone">Recurring-Revenue Snapshot</td></tr>
+      <tr><td>C-13 SeriesRevenuePanel (summary mode): booked vs unbooked recurring revenue, active series count. Click &rarr; /itm/series.</td></tr>
+    </table>
+  </td>
+  <td class="toggle-head">Action Queue</td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">LP nav: Dashboard, Assets, Series, Calendar, Reports, Testing &amp; Maintenance. AI Code Intelligence (only if Feature 20.4 enabled).</td>
+  <td rowspan="2" class="toggle">Action items: inspections awaiting QA, reports in DRAFT, calibrations DUE_SOON/EXPIRED, PM due. Each row [Open] [Dismiss].</td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>Last refreshed timestamp | counts summary</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> (none)<br>
+  <b>[PF] Page Filters:</b> Date range, Location, System type<br>
+  <b>Content Footer:</b> Last refreshed timestamp, aggregate counts<br>
+  <b>Secondary Header detail:</b> Page title "ITM Dashboard"; no breadcrumbs (module root)
+</div>
+
+<!-- ============================================================ -->
+<!-- 2. ASSET REGISTRY -->
+<!-- ============================================================ -->
+<h2>2. <i>ASSET REGISTRY</i></h2>
+<p class="route">Route: /itm/assets</p>
+<div class="context"><b>Context: None.</b>
+  Asset / Location / AHJ data is read from <b>HubSpot (custom objects)</b> via API; ITM does not own Asset CRUD — it overlays compliance status.
+  Filterable by location, system type, and lifecycle status.
+  Selecting a row populates the Right Panel snapshot; double-click / open &rarr; /itm/assets/:id.</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | Assets | [PSB]</td>
+  <td>[PF] | RP Toggle</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Filters</td>
+  <td rowspan="2">C-04 AssetTable (read from HubSpot custom objects via API; ITM overlays compliance status): columns asset name, C-09 SystemTypeBadge, location, C-08 AssetLifecycleBadge, C-10 ComplianceStandardChips, next inspection. Row select &rarr; RP snapshot. Open &rarr; Asset Detail.</td>
+  <td class="toggle-head">Asset Snapshot</td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">Location tree, System type list, Status filter (active / inactive / decommissioned). Counts per group.</td>
+  <td rowspan="2" class="toggle">C-06 AssetDetailPanel (snapshot mode): selected asset key facts, compliance standards, next/last inspection, [Open Detail] [Edit].</td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>record count | pagination | export | bulk actions</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> [+ New Asset] (opens C-07 Asset Form Modal)<br>
+  <b>[PF] Page Filters:</b> Search by name/tag<br>
+  <b>Content Footer:</b> Showing X of Y | pagination | Export CSV | Bulk: change status<br>
+  <b>Secondary Header detail:</b> Breadcrumb ITM &rsaquo; Assets
+</div>
+
+<!-- ============================================================ -->
+<!-- 3. ASSET DETAIL -->
+<!-- ============================================================ -->
+<h2>3. <i>ASSET DETAIL</i></h2>
+<p class="route">Route: /itm/assets/:id</p>
+<div class="context"><b>Context: assetId (HubSpot Asset object ID, from route param :id).</b>
+  The core Asset / Location / AHJ record is read from <b>HubSpot (custom objects)</b> via API; ITM does not own Asset CRUD and overlays compliance status, plus its own inspection / test / maintenance history.
+  Left Panel is a section nav (Overview / Inspections / Tests / Maintenance / Standards) that drives the Content tabs.</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | [Asset Name] | [PSB]</td>
+  <td>[PF] | RP Toggle</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Asset Sections</td>
+  <td rowspan="2">
+    <table class="sub">
+      <tr><td class="sub-zone">History Tabs (driven by LP section)</td></tr>
+      <tr><td>Overview: C-06 AssetDetailPanel (core system info / lifecycle read from HubSpot via API). Inspections / Tests / Maintenance: ITM-owned tabbed history tables. Standards: C-10 ComplianceStandardChips + AssetComplianceStandard list (ITM compliance overlay).</td></tr>
+    </table>
+  </td>
+  <td class="toggle-head">Compliance &amp; Lifecycle</td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">Section nav: Overview, Inspections, Tests, Maintenance, Standards. C-08 AssetLifecycleBadge shown at top.</td>
+  <td rowspan="2" class="toggle">Applicable compliance standards (NFPA), C-08 lifecycle status, warranty_expiry, next/last inspection. [Edit] edits the ITM compliance overlay / opens HubSpot for the core record; [Decommission].</td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>history record count | export</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> [Edit Asset] (C-07), [Decommission/Replace]<br>
+  <b>[PF] Page Filters:</b> History date range (within active tab)<br>
+  <b>Content Footer:</b> Record count for active history tab | Export<br>
+  <b>Secondary Header detail:</b> Breadcrumb ITM &rsaquo; Assets &rsaquo; [Asset Name]
+</div>
+
+<!-- ============================================================ -->
+<!-- 4. INSPECTION SERIES LIST -->
+<!-- ============================================================ -->
+<h2>4. <i>INSPECTION SERIES LIST</i></h2>
+<p class="route">Route: /itm/series</p>
+<div class="context"><b>Context: None.</b>
+  Loads all recurring inspection series for the current org with booked-vs-unbooked and upcoming/overdue rollups.
+  No Right Panel on this page.</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | Inspection Series | [PSB]</td>
+  <td>(no RP)</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Filters</td>
+  <td rowspan="2">C-11 InspectionSeriesTable: series name, frequency, locations, status (ACTIVE / PAUSED), booked vs unbooked rollup, upcoming/overdue counts. Open &rarr; /itm/series/:id.</td>
+  <td></td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">Status filter (Active / Paused), Frequency filter, Location filter. Counts per group.</td>
+  <td></td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>record count | pagination | export</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> [+ New Series] (opens C-12 Inspection Series Form Modal)<br>
+  <b>[PF] Page Filters:</b> Search by series name<br>
+  <b>Content Footer:</b> Showing X of Y | pagination | Export CSV<br>
+  <b>Secondary Header detail:</b> Breadcrumb ITM &rsaquo; Series. No Right Panel — Col 4 marked (no RP), Rows 3-4 Col 4 empty.
+</div>
+
+<!-- ============================================================ -->
+<!-- 5. INSPECTION SERIES DETAIL -->
+<!-- ============================================================ -->
+<h2>5. <i>INSPECTION SERIES DETAIL</i></h2>
+<p class="route">Route: /itm/series/:id</p>
+<div class="context"><b>Context: seriesId (from route param :id).</b>
+  Loads the series config, its generated per-asset schedules, and visit history.
+  Right Panel = C-13 SeriesRevenuePanel (booked vs unbooked recurring revenue for this series).</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | [Series Name] | [PSB]</td>
+  <td>[PF] | RP Toggle</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Series Sections</td>
+  <td rowspan="2">
+    <table class="sub">
+      <tr><td class="sub-zone">Series Config</td></tr>
+      <tr><td>Frequency, locations/assets in scope, status (ACTIVE/PAUSED), next generation date. [Edit] &rarr; C-12.</td></tr>
+    </table>
+    <table class="sub">
+      <tr><td class="sub-zone">Generated Schedules + Visit History</td></tr>
+      <tr><td>C-15 InspectionScheduleRow list: due dates, asset, status. Row action [Reschedule] &rarr; C-16. Visit history rows link to inspections.</td></tr>
+    </table>
+  </td>
+  <td class="toggle-head">Series Revenue</td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">Config, Schedules, Visit History nav. Status badge.</td>
+  <td rowspan="2" class="toggle">C-13 SeriesRevenuePanel: booked vs unbooked recurring revenue, per-visit value, projection.</td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>schedule count | export</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> [Edit Series] (C-12), [Pause/Resume], [Generate Now], [Create crew shift (Connecteam, manual)]<br>
+  <b>[PF] Page Filters:</b> Schedule status, Date range<br>
+  <b>Content Footer:</b> Generated schedule count | Export<br>
+  <b>Secondary Header detail:</b> Breadcrumb ITM &rsaquo; Series &rsaquo; [Series Name]
+</div>
+
+<!-- ============================================================ -->
+<!-- 6. INSPECTION CALENDAR -->
+<!-- ============================================================ -->
+<h2>6. <i>INSPECTION CALENDAR</i></h2>
+<p class="route">Route: /itm/calendar</p>
+<div class="context"><b>Context: None (date range derived from filters).</b>
+  <b>Internal operations view</b> of upcoming / overdue inspection schedules across all locations for the selected date range only.
+  Client booking, reminders, and the customer portal are <b>HubSpot</b> (off the Inspection/Deficiency tickets) — not ITM.
+  Overdue items highlighted. Right Panel = selected-day detail / internal crew-dispatch queue.</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | Inspection Calendar | [PSB]</td>
+  <td>[PF] | RP Toggle</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Calendar Filters</td>
+  <td rowspan="2">C-14 InspectionCalendar: month/week grid of upcoming inspections; overdue cells red-highlighted. Day cell click &rarr; RP day detail. Event click &rarr; workspace / reschedule.</td>
+  <td class="toggle-head">Day Detail</td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">Location filter, System type filter, Show overdue only toggle, View (month/week).</td>
+  <td rowspan="2" class="toggle">Selected day: scheduled inspections list + internal crew-dispatch queue. Each [Create crew shift (Connecteam, manual)] / [Open Workspace].</td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>visible range | upcoming/overdue counts</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> [Today], [Prev/Next range], [Create crew shift (Connecteam, manual)]<br>
+  <b>[PF] Page Filters:</b> Date range, Location, System type, Overdue-only<br>
+  <b>Content Footer:</b> Visible date range | upcoming count | overdue count<br>
+  <b>Secondary Header detail:</b> Breadcrumb ITM &rsaquo; Calendar
+</div>
+
+<!-- ============================================================ -->
+<!-- 7. INSPECTION REVIEW -->
+<!-- ============================================================ -->
+<h2>7. <i>INSPECTION REVIEW</i></h2>
+<p class="route">Route: /itm/inspections/:id/review</p>
+<div class="context"><b>Context: inspectionId (from route param :id).</b>
+  Loads a completed inspection for QA review. Content = C-24 QaReviewPanel + C-23 InspectionHistoryCompare.
+  Right Panel = previous-inspection comparison and finalize actions.</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | Inspection Review | [PSB]</td>
+  <td>[PF] | RP Toggle</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Review Sections</td>
+  <td rowspan="2">
+    <table class="sub">
+      <tr><td class="sub-zone">QA Review</td></tr>
+      <tr><td>C-24 QaReviewPanel: answered question set, flagged answers, captured deficiencies, photos. Approve / request-changes per item.</td></tr>
+    </table>
+    <table class="sub">
+      <tr><td class="sub-zone">History Compare</td></tr>
+      <tr><td>C-23 InspectionHistoryCompare: this inspection vs prior visit for the same asset, deltas highlighted.</td></tr>
+    </table>
+  </td>
+  <td class="toggle-head">Compare &amp; Finalize</td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">QA Review, History Compare, Deficiencies, Photos section nav. qaStatus badge.</td>
+  <td rowspan="2" class="toggle">Previous-inspection comparison summary; finalize actions: [Approve QA] [Return for Rework] [Generate Report].</td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>flagged item count | QA status</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> [Approve QA], [Return for Rework], [Generate Report]<br>
+  <b>[PF] Page Filters:</b> Show flagged only<br>
+  <b>Content Footer:</b> Flagged item count | current qaStatus<br>
+  <b>Secondary Header detail:</b> Breadcrumb ITM &rsaquo; Inspections &rsaquo; [Asset] &rsaquo; Review
+</div>
+
+<!-- ============================================================ -->
+<!-- 8. INSPECTION REPORTS LIST -->
+<!-- ============================================================ -->
+<h2>8. <i>INSPECTION REPORTS LIST</i></h2>
+<p class="route">Route: /itm/reports</p>
+<div class="context"><b>Context: None.</b>
+  Loads all generated inspection reports for the current org with status and delivery tracking.
+  No Right Panel on this page.</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | Inspection Reports | [PSB]</td>
+  <td>(no RP)</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Status Filters</td>
+  <td rowspan="2">C-25 InspectionReportTable: report name, asset/series, status (DRAFT / QA_REVIEW / SENT), format, generated date, delivery status. Open &rarr; /itm/reports/:id.</td>
+  <td></td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">Status filter (Draft / QA Review / Sent), Format filter (NFPA / JC / deficiencies-only), Date range. Counts per status.</td>
+  <td></td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>record count | pagination | export</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> (none)<br>
+  <b>[PF] Page Filters:</b> Search by report/asset name<br>
+  <b>Content Footer:</b> Showing X of Y | pagination | Export CSV<br>
+  <b>Secondary Header detail:</b> Breadcrumb ITM &rsaquo; Reports. No Right Panel — Col 4 marked (no RP), Rows 3-4 Col 4 empty.
+</div>
+
+<!-- ============================================================ -->
+<!-- 9. REPORT BUILDER -->
+<!-- ============================================================ -->
+<h2>9. <i>REPORT BUILDER</i></h2>
+<p class="route">Route: /itm/reports/:id</p>
+<div class="context"><b>Context: reportId (from route param :id).</b>
+  Loads a report for shaping/preview. Content = C-27 ReportPreview (section preview).
+  Right Panel = C-26 ReportBuilderPanel (system-type filter, deficiencies-only, NFPA/JC format, send).
+  The deficiency &rarr; proposal action is a <b>handoff to HubSpot</b> (ITM builds no proposals); report delivery is via <b>HubSpot / customer portal</b>.</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | Report Builder | [PSB]</td>
+  <td>[PF] | RP Toggle</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Report Sections</td>
+  <td rowspan="2">C-27 ReportPreview: rendered report sections (cover, asset summary, question results, deficiencies, photos, signatures). Live-updates as RP filters change.</td>
+  <td class="toggle-head">Builder Controls</td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">Section jump nav: Cover, Summary, Results, Deficiencies, Photos, Signatures.</td>
+  <td rowspan="2" class="toggle">C-26 ReportBuilderPanel: system-type filter, deficiencies-only toggle, format (NFPA / JC / custom), recipient, [Deficiency &rarr; Proposal] (handoff to HubSpot), [Save Draft] [Send via HubSpot / portal] &rarr; C-28.</td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>page count | report status</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> [Save Draft], [Send Report] (opens C-28)<br>
+  <b>[PF] Page Filters:</b> Preview format toggle<br>
+  <b>Content Footer:</b> Rendered page count | report status (DRAFT / QA_REVIEW / SENT)<br>
+  <b>Secondary Header detail:</b> Breadcrumb ITM &rsaquo; Reports &rsaquo; [Report Name]
+</div>
+
+<!-- ============================================================ -->
+<!-- 10. TESTING & MAINTENANCE -->
+<!-- ============================================================ -->
+<h2>10. <i>TESTING &amp; MAINTENANCE</i></h2>
+<p class="route">Route: /itm/testing</p>
+<div class="context"><b>Context: None (optional ?assetId query).</b>
+  Loads test records, maintenance log, and PM schedule for the org; if ?assetId present, scopes to that asset.
+  Tabbed Content. Right Panel = PM-due / failed-test queue.</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | Testing &amp; Maintenance | [PSB]</td>
+  <td>[PF] | RP Toggle</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Filters</td>
+  <td rowspan="2">
+    <table class="sub">
+      <tr><td class="sub-zone" style="width:34%">Tests tab</td><td class="sub-zone" style="width:33%">Maintenance tab</td><td class="sub-zone" style="width:33%">PM Schedule tab</td></tr>
+      <tr>
+        <td>C-29 TestRecordTable: test type, result, equipment, date. Add &rarr; C-30.</td>
+        <td>C-31 MaintenanceTable: type (preventive/corrective/emergency), asset, date. Add &rarr; C-32.</td>
+        <td>PM schedule list: due / overdue PM tasks per asset.</td>
+      </tr>
+    </table>
+  </td>
+  <td class="toggle-head">PM-Due / Failed Tests</td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">Asset filter, Result filter (pass/fail), Maintenance type filter, Date range.</td>
+  <td rowspan="2" class="toggle">Queue: PM due-soon/overdue, failed tests needing follow-up. Each [Log] / [Open Asset].</td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>record count (active tab) | export</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> [+ Test Record] (C-30), [+ Maintenance] (C-32)<br>
+  <b>[PF] Page Filters:</b> Active tab, Asset, Date range<br>
+  <b>Content Footer:</b> Record count for active tab | Export<br>
+  <b>Secondary Header detail:</b> Breadcrumb ITM &rsaquo; Testing &amp; Maintenance. Optional ?assetId scopes all tabs to one asset.
+</div>
+
+<!-- ============================================================ -->
+<!-- 11. TEST EQUIPMENT & CALIBRATION -->
+<!-- ============================================================ -->
+<h2>11. <i>TEST EQUIPMENT &amp; CALIBRATION</i></h2>
+<p class="route">Route: /itm/testing/equipment</p>
+<div class="context"><b>Context: None.</b>
+  Loads all test instruments for the org with calibration status (VALID / DUE_SOON / EXPIRED) and calibration history.
+  No Right Panel on this page.</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | Test Equipment &amp; Calibration | [PSB]</td>
+  <td>(no RP)</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Calibration Filters</td>
+  <td rowspan="2">C-33 TestEquipmentTable: instrument, serial, calibration status badge, last/next calibration date. Row [Log Calibration] &rarr; C-34. Expand &rarr; calibration history.</td>
+  <td></td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">Calibration status filter (Valid / Due Soon / Expired), Instrument type. Counts per state.</td>
+  <td></td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>record count | pagination | export</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> [+ Equipment], [Log Calibration] (C-34)<br>
+  <b>[PF] Page Filters:</b> Search by instrument/serial<br>
+  <b>Content Footer:</b> Showing X of Y | pagination | Export CSV<br>
+  <b>Secondary Header detail:</b> Breadcrumb ITM &rsaquo; Testing &amp; Maintenance &rsaquo; Equipment. No Right Panel — Col 4 marked (no RP), Rows 3-4 Col 4 empty.
+</div>
+
+<!-- ============================================================ -->
+<!-- 12. ADMIN: INSPECTION FORMS -->
+<!-- ============================================================ -->
+<h2>12. <i>ADMIN: INSPECTION FORMS</i></h2>
+<p class="route">Route: /itm/forms (admin shell; also reachable as Administration tab)</p>
+<div class="context"><b>Context: None.</b>
+  Admin-shell page. Loads org JSON-schema inspection form definitions (NFPA 13/25/72/custom) and versions.
+  Content = form list + schema builder. Admin left tabs replace the standard module LP.</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | Inspection Forms | [PSB]</td>
+  <td>(no RP)</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Admin Tabs</td>
+  <td rowspan="2">
+    <table class="sub">
+      <tr><td class="sub-zone" style="width:40%">Form List</td><td class="sub-zone" style="width:60%">Schema Builder</td></tr>
+      <tr>
+        <td>Form definitions (NFPA 13/25/72/custom), active/inactive versions. Select &rarr; load into builder.</td>
+        <td>C-35 InspectionFormBuilder + C-36 FormSchemaFieldEditor: add/edit JSON-schema questions, types, validation; version + publish.</td>
+      </tr>
+    </table>
+  </td>
+  <td></td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">Admin section tabs (Forms, plus other admin areas). Form category filter.</td>
+  <td></td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>form/version count | save status</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> [+ New Form], [New Version], [Publish] (opens C-?? Form Schema Editor / save flow)<br>
+  <b>[PF] Page Filters:</b> Form category (NFPA 13/25/72/custom), Active/Inactive<br>
+  <b>Content Footer:</b> Form count, active version count, save status<br>
+  <b>Secondary Header detail:</b> Admin shell — left tabs replace module LP. No Right Panel — Col 4 marked (no RP).
+</div>
+
+<!-- ============================================================ -->
+<!-- 13. AI CODE INTELLIGENCE -->
+<!-- ============================================================ -->
+<h2>13. <i>AI CODE INTELLIGENCE</i></h2>
+<p class="route">Route: /itm/ai</p>
+<div class="context"><b>Context: None (Phase 6, feature-gated by 20.4).</b>
+  Loads the code-reference library and AI-generated checklist suggestions for the org.
+  Right Panel = C-37 AiSuggestionPanel (pending / accepted / rejected suggestions).</div>
+<table>
+<tr>
+  <td class="label"></td>
+  <td class="zone" style="width:8%">Col 1</td>
+  <td class="zone" style="width:18%">Col 2 - LP</td>
+  <td class="zone">Col 3 - Content</td>
+  <td class="zone" style="width:20%">Col 4 - RP</td>
+</tr>
+<tr>
+  <td class="label">Row 1</td>
+  <td class="global">Logo</td>
+  <td colspan="2" class="global"><i>Main Header: Global dropdowns &amp; filters |
+    Environment badge | Global search | Notifications | Messages |
+    Settings | Profile</i></td>
+  <td class="global">Settings Indicators</td>
+</tr>
+<tr>
+  <td class="label">Row 2</td>
+  <td rowspan="4">Main Nav<br><br>ITM</td>
+  <td colspan="2">LP Toggle | AI Code Intelligence | [PSB]</td>
+  <td>[PF] | RP Toggle</td>
+</tr>
+<tr>
+  <td class="label">Row 3</td>
+  <td class="toggle-head">Code Library</td>
+  <td rowspan="2">
+    <table class="sub">
+      <tr><td class="sub-zone">Code Reference + Checklist Generation</td></tr>
+      <tr><td>C-38 CodeReferenceDrawer content: searchable NFPA code library; checklist-generation form (select code/system type &rarr; generate draft question set). Generated items route to RP for review.</td></tr>
+    </table>
+  </td>
+  <td class="toggle-head">AI Suggestions</td>
+</tr>
+<tr>
+  <td class="label">Row 4</td>
+  <td rowspan="2" class="toggle">Code library nav (by NFPA standard / system type), generation history.</td>
+  <td rowspan="2" class="toggle">C-37 AiSuggestionPanel: suggestions list (PENDING / ACCEPTED / REJECTED). Item [Review] &rarr; AI Suggestion Review.</td>
+</tr>
+<tr>
+  <td class="label">Row 5</td>
+  <td class="zone">Content Footer: <i>library item count | pending suggestion count</i></td>
+</tr>
+<tr>
+  <td class="label">Row 6</td>
+  <td colspan="4" class="global"><i>App Footer: &copy; 2026 Beacon Fire Protection |
+    Environment Badge | Status: Operational | Support Link</i></td>
+</tr>
+</table>
+<div class="page-def">
+  <b>[PSB] Page Specific Buttons:</b> [Generate Checklist]<br>
+  <b>[PF] Page Filters:</b> NFPA standard, System type, Suggestion status<br>
+  <b>Content Footer:</b> Library item count | pending suggestion count<br>
+  <b>Secondary Header detail:</b> Breadcrumb ITM &rsaquo; AI Code Intelligence. Visible in LP only when Feature 20.4 enabled.
+</div>
+
+<!-- ============================================================ -->
+<!-- 14. INSPECTION WORKSPACE (MOBILE FULL-SCREEN) -->
+<!-- ============================================================ -->
+<h2>14. <i>INSPECTION WORKSPACE</i></h2>
+<p class="route">Route: /itm/inspections/:id</p>
+<div class="context"><b>Context: inspectionId (keyed to the HubSpot Inspection ticket ID, from route param :id).</b>
+  Offline-first PWA full-screen form for field crews. Loads the assigned inspection (asset, form schema, prior answers)
+  into local storage; syncs on reconnect. A deficient answer creates a <b>HubSpot Deficiency ticket</b> via API on sync. No app-shell grid — mobile full-screen layout.</div>
+<table style="width:50%">
+<tr><td class="zone">MOBILE FULL-SCREEN FORM</td></tr>
+<tr><td class="global"><i>Top bar: [Back] | Asset / Inspection title | C-22 OfflineSyncIndicator (online / offline / pending-sync)</i></td></tr>
+<tr><td>
+  <table class="sub">
+    <tr><td class="sub-zone">Question Set</td></tr>
+    <tr><td>C-18 QuestionSetRenderer: renders form-schema questions (pass/fail/NA, numeric, text), progress indicator, conditional logic.</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Deficiency Capture</td></tr>
+    <tr><td>C-19 DeficiencyCaptureCard: log deficiency per failed question (severity low/high/critical, note, location, link photo). On submit, creates a <b>HubSpot Deficiency ticket</b> via API.</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Photo Annotate</td></tr>
+    <tr><td>C-20 PhotoAnnotator: capture/attach photo, draw/annotate, caption; attaches to question or deficiency.</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Signature</td></tr>
+    <tr><td>C-21 SignaturePad: technician + on-site contact signatures; name/date capture.</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Offline Sync</td></tr>
+    <tr><td>C-22 OfflineSyncIndicator: connection state, queued-changes count, [Sync Now]; auto-syncs on reconnect.</td></tr>
+  </table>
+</td></tr>
+<tr><td class="global"><i>Bottom action bar: [Save Draft (local)] | [Submit for QA] (queues if offline)</i></td></tr>
+</table>
+<div class="page-def">
+  <b>Layout:</b> Mobile full-screen form (PWA, dark-mode-friendly per Field Operations conventions). No Main Nav / LP / RP / app-shell grid.<br>
+  <b>Sections (sub-tables):</b> Question Set (C-18), Deficiency Capture (C-19), Photo Annotate (C-20), Signature (C-21), Offline Sync (C-22)<br>
+  <b>Offline behavior:</b> Loads to local storage; all edits persist locally; submit queues when offline and flushes on reconnect.
+</div>
+
+<!-- ============================================================ -->
+<!-- 15. ASSET FORM MODAL (C-07) -->
+<!-- ============================================================ -->
+<h2>15. <i>ASSET FORM MODAL</i></h2>
+<p class="route">Opened from: Asset Registry [+ New Asset] or Asset Detail [Edit Asset]</p>
+<div class="context"><b>Context: assetId (HubSpot Asset object ID, inherited from Asset Registry / Asset Detail; null for create).</b>
+  Edits the <b>ITM compliance overlay</b> (standards, lifecycle/compliance fields) or <b>opens HubSpot</b> for the core Asset record — ITM does not own Asset CRUD. On edit, reads the existing asset from HubSpot via API; on create, the core record is created in HubSpot.</div>
+<table style="width:70%">
+<tr><td class="zone">MODAL (C-07 AssetFormModal)</td></tr>
+<tr><td>
+  <table class="sub">
+    <tr><td class="sub-zone">Identity</td></tr>
+    <tr><td>Asset name/tag, C-09 SystemTypeBadge selector (system type), location.</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Lifecycle &amp; Warranty</td></tr>
+    <tr><td>C-08 AssetLifecycleBadge status (active / inactive / decommissioned), install date, warranty_expiry.</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Compliance Standards</td></tr>
+    <tr><td>C-10 ComplianceStandardChips: link applicable NFPA standards (AssetComplianceStandard).</td></tr>
+  </table>
+</td></tr>
+<tr><td class="global"><i>Modal footer: [Cancel] | [Save Asset]</i></td></tr>
+</table>
+<div class="page-def">
+  <b>Sections:</b> Identity, Lifecycle &amp; Warranty, Compliance Standards<br>
+  <b>Behavior:</b> Edits the ITM compliance overlay / opens HubSpot for the core record (ITM does not own Asset CRUD). Create vs edit determined by inherited assetId; saving refreshes the parent table / detail.
+</div>
+
+<!-- ============================================================ -->
+<!-- 16. INSPECTION SERIES FORM MODAL (C-12) -->
+<!-- ============================================================ -->
+<h2>16. <i>INSPECTION SERIES FORM MODAL</i></h2>
+<p class="route">Opened from: Inspection Series List [+ New Series] or Series Detail [Edit Series]</p>
+<div class="context"><b>Context: seriesId (inherited from Series List / Series Detail; null for create).</b>
+  Create or edit a recurring inspection series. On edit, loads series config; on create, scoped to current org.</div>
+<table style="width:70%">
+<tr><td class="zone">MODAL (C-12 InspectionSeriesFormModal)</td></tr>
+<tr><td>
+  <table class="sub">
+    <tr><td class="sub-zone">Series Definition</td></tr>
+    <tr><td>Series name, status (ACTIVE / PAUSED).</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Frequency &amp; Scope</td></tr>
+    <tr><td>Frequency (monthly / quarterly / semi-annual / annual), start date, locations / assets in scope, inspection form.</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Generation</td></tr>
+    <tr><td>Auto-generate schedules toggle, lead time before due, work-order auto-creation.</td></tr>
+  </table>
+</td></tr>
+<tr><td class="global"><i>Modal footer: [Cancel] | [Save Series]</i></td></tr>
+</table>
+<div class="page-def">
+  <b>Sections:</b> Series Definition, Frequency &amp; Scope, Generation<br>
+  <b>Behavior:</b> On save, series → schedule generation runs; saving refreshes the parent list / detail.
+</div>
+
+<!-- ============================================================ -->
+<!-- 17. RESCHEDULE MODAL (C-16) -->
+<!-- ============================================================ -->
+<h2>17. <i>RESCHEDULE MODAL</i></h2>
+<p class="route">Opened from: Series Detail / Calendar schedule row [Reschedule]</p>
+<div class="context"><b>Context: scheduleId (from row action on Series Detail or Calendar).</b>
+  Reschedule a single inspection schedule. Loads the schedule and offers future-visit auto-shift to keep the series aligned.</div>
+<table style="width:60%">
+<tr><td class="zone">MODAL (C-16 RescheduleModal)</td></tr>
+<tr><td>
+  <table class="sub">
+    <tr><td class="sub-zone">New Date</td></tr>
+    <tr><td>Current due date (read-only), new date picker, reason note.</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Series Alignment</td></tr>
+    <tr><td>Toggle: shift future visits to keep series cadence (auto-shift) vs reschedule this visit only.</td></tr>
+  </table>
+</td></tr>
+<tr><td class="global"><i>Modal footer: [Cancel] | [Reschedule]</i></td></tr>
+</table>
+<div class="page-def">
+  <b>Sections:</b> New Date, Series Alignment<br>
+  <b>Behavior:</b> If auto-shift enabled, future schedules in the series shift accordingly; refreshes Calendar / Series Detail.
+</div>
+
+<!-- ============================================================ -->
+<!-- 18. SEND REPORT MODAL (C-28) -->
+<!-- ============================================================ -->
+<h2>18. <i>SEND REPORT MODAL</i></h2>
+<p class="route">Opened from: Report Builder [Send Report]</p>
+<div class="context"><b>Context: reportId (from Report Builder).</b>
+  Deliver the built report via <b>HubSpot / customer portal</b>. Loads recipient defaults from the HubSpot Customer/AHJ; confirms format and HubSpot/portal delivery.</div>
+<table style="width:60%">
+<tr><td class="zone">MODAL (C-28 SendReportModal)</td></tr>
+<tr><td>
+  <table class="sub">
+    <tr><td class="sub-zone">Recipients</td></tr>
+    <tr><td>To / CC recipients (client / AHJ contacts), subject, message.</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Format &amp; Delivery</td></tr>
+    <tr><td>Output format (NFPA / JC / deficiencies-only), attach PDF, delivery channel (HubSpot / customer portal).</td></tr>
+  </table>
+</td></tr>
+<tr><td class="global"><i>Modal footer: [Cancel] | [Send]</i></td></tr>
+</table>
+<div class="page-def">
+  <b>Sections:</b> Recipients, Format &amp; Delivery<br>
+  <b>Behavior:</b> On send, the report is delivered via HubSpot / customer portal, report status &rarr; SENT, delivery tracked; closes back to Report Builder.
+</div>
+
+<!-- ============================================================ -->
+<!-- 19. TEST RECORD / MAINTENANCE / CALIBRATION MODALS -->
+<!-- ============================================================ -->
+<h2>19. <i>TEST RECORD / MAINTENANCE / CALIBRATION MODALS</i></h2>
+<p class="route">Opened from: Testing &amp; Maintenance tabs and Test Equipment table</p>
+<div class="context"><b>Context: inherited from Testing &amp; Maintenance (assetId) or Test Equipment (equipmentId); recordId on edit.</b>
+  Three sibling record modals. Each loads its record on edit, or is scoped to the current org / inherited asset on create.</div>
+<table style="width:75%">
+<tr><td class="zone">MODAL (C-30 TestRecordModal)</td></tr>
+<tr><td>
+  <table class="sub">
+    <tr><td class="sub-zone">Test Record</td></tr>
+    <tr><td>Asset, test type (hydrostatic / flow / alarm / pump curve), result (pass/fail), C-33 equipment used, readings, date, notes.</td></tr>
+  </table>
+</td></tr>
+<tr><td class="global"><i>Modal footer: [Cancel] | [Save Test]</i></td></tr>
+</table>
+<table style="width:75%">
+<tr><td class="zone">MODAL (C-32 MaintenanceModal)</td></tr>
+<tr><td>
+  <table class="sub">
+    <tr><td class="sub-zone">Maintenance Record</td></tr>
+    <tr><td>Asset, type (preventive / corrective / emergency), description, parts, labor, date, technician.</td></tr>
+  </table>
+</td></tr>
+<tr><td class="global"><i>Modal footer: [Cancel] | [Save Maintenance]</i></td></tr>
+</table>
+<table style="width:75%">
+<tr><td class="zone">MODAL (C-34 CalibrationModal)</td></tr>
+<tr><td>
+  <table class="sub">
+    <tr><td class="sub-zone">Calibration Record</td></tr>
+    <tr><td>Equipment (C-33), calibration date, next-due date, calibrated-by, certificate ref, resulting status (VALID / DUE_SOON / EXPIRED).</td></tr>
+  </table>
+</td></tr>
+<tr><td class="global"><i>Modal footer: [Cancel] | [Save Calibration]</i></td></tr>
+</table>
+<div class="page-def">
+  <b>Modals:</b> C-30 Test Record, C-32 Maintenance, C-34 Calibration — three single-cell modals, each body uses a sub-table.<br>
+  <b>Behavior:</b> Saving refreshes the originating tab / equipment table; calibration save recomputes the equipment calibration-status badge.
+</div>
+
+<!-- ============================================================ -->
+<!-- 20. AI SUGGESTION REVIEW (within C-37) -->
+<!-- ============================================================ -->
+<h2>20. <i>AI SUGGESTION REVIEW</i></h2>
+<p class="route">Opened from: AI Code Intelligence — C-37 AiSuggestionPanel [Review]</p>
+<div class="context"><b>Context: suggestionId (from AiSuggestionPanel row).</b>
+  Review a single AI-generated checklist suggestion. Loads the suggestion (source code reference, proposed questions, status).</div>
+<table style="width:70%">
+<tr><td class="zone">MODAL (AI Suggestion Review — within C-37)</td></tr>
+<tr><td>
+  <table class="sub">
+    <tr><td class="sub-zone">Source &amp; Rationale</td></tr>
+    <tr><td>Originating NFPA code reference (C-38 CodeReferenceDrawer link), system type, AI rationale.</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Proposed Checklist Items</td></tr>
+    <tr><td>Generated question set with per-item edit; map into a target inspection form.</td></tr>
+  </table>
+  <table class="sub">
+    <tr><td class="sub-zone">Decision</td></tr>
+    <tr><td>Status (PENDING / ACCEPTED / REJECTED), reviewer note.</td></tr>
+  </table>
+</td></tr>
+<tr><td class="global"><i>Modal footer: [Reject] | [Accept &amp; Apply]</i></td></tr>
+</table>
+<div class="page-def">
+  <b>Sections:</b> Source &amp; Rationale, Proposed Checklist Items, Decision<br>
+  <b>Behavior:</b> Accept applies the items to the target form and sets status ACCEPTED; Reject sets status REJECTED. Refreshes C-37 panel.
+</div>
+
+</body>
+</html>
