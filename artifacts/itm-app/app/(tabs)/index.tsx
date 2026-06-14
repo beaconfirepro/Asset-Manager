@@ -1,6 +1,8 @@
 import React from "react";
-import { Platform, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
 import { OfflineSyncIndicator } from "@/components/OfflineSyncIndicator";
@@ -14,6 +16,7 @@ export default function DashboardScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
+  const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useDashboard();
   const topPad = Platform.OS === "web" ? 67 : 0;
 
@@ -46,7 +49,17 @@ export default function DashboardScreen() {
             <Text style={[styles.user, { color: colors.mutedForeground }]}>{session.user.name}</Text>
           )}
         </View>
-        <OfflineSyncIndicator compact />
+        <View style={styles.headerRight}>
+          <Pressable
+            onPress={() => router.push("/admin/forms" as any)}
+            hitSlop={10}
+            style={[styles.adminBtn, { backgroundColor: colors.muted, borderColor: colors.border }]}
+          >
+            <Feather name="settings" size={14} color={colors.mutedForeground} />
+            <Text style={[styles.adminBtnText, { color: colors.mutedForeground }]}>Forms</Text>
+          </Pressable>
+          <OfflineSyncIndicator compact />
+        </View>
       </View>
 
       {Platform.OS === "web" ? (
@@ -94,6 +107,17 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 8,
   },
+  headerRight: { alignItems: "flex-end", gap: 8 },
+  adminBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  adminBtnText: { fontSize: 12, fontFamily: "Inter_500Medium" },
   greeting: { fontSize: 12, fontFamily: "Inter_500Medium", textTransform: "uppercase", letterSpacing: 0.8 },
   title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.5, marginTop: 2 },
   user: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 2 },

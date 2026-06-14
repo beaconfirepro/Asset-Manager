@@ -37,9 +37,11 @@ function freqLabel(days: number) {
 function ScheduleRow({
   schedule,
   onReschedule,
+  onStartInspection,
 }: {
   schedule: InspectionSchedule;
   onReschedule: (s: InspectionSchedule) => void;
+  onStartInspection: (scheduleId: string) => void;
 }) {
   const colors = useColors();
   const today = new Date().toISOString().slice(0, 10);
@@ -84,6 +86,15 @@ function ScheduleRow({
       {schedule.status !== "CANCELLED" && (
         <Pressable onPress={() => onReschedule(schedule)} hitSlop={10} style={{ marginLeft: 8 }}>
           <Feather name="edit-2" size={14} color={colors.primary} />
+        </Pressable>
+      )}
+      {schedule.status !== "CANCELLED" && d >= today && (
+        <Pressable
+          onPress={() => onStartInspection(schedule.id)}
+          hitSlop={10}
+          style={{ marginLeft: 4 }}
+        >
+          <Feather name="play-circle" size={16} color={colors.success} />
         </Pressable>
       )}
     </View>
@@ -226,7 +237,7 @@ export default function SeriesDetailScreen() {
             <Text style={[styles.empty, { color: colors.mutedForeground }]}>No upcoming visits.</Text>
           ) : (
             future.map((s) => (
-              <ScheduleRow key={s.id} schedule={s} onReschedule={setRescheduleTarget} />
+              <ScheduleRow key={s.id} schedule={s} onReschedule={setRescheduleTarget} onStartInspection={(sid) => router.push(`/inspections/${sid}` as any)} />
             ))
           )}
         </CardContent>
@@ -237,7 +248,7 @@ export default function SeriesDetailScreen() {
           <CardHeader title="Past Visits" subtitle={`${past.length} visits`} />
           <CardContent>
             {past.map((s) => (
-              <ScheduleRow key={s.id} schedule={s} onReschedule={setRescheduleTarget} />
+              <ScheduleRow key={s.id} schedule={s} onReschedule={setRescheduleTarget} onStartInspection={(sid) => router.push(`/inspections/${sid}` as any)} />
             ))}
           </CardContent>
         </Card>
