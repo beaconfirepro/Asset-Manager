@@ -1,5 +1,2 @@
-- [ITM App — web blank screen](itm-web-blank-screen.md) — blank white web preview = a `return null` gate (fonts/isLoading), not a thrown error; don't block render on fonts on web
-- [ITM App — expo-sqlite web stub](itm-expo-sqlite-web.md) — expo-sqlite WASM crashes Metro on web; use platform-specific file to stub it out
-- [ITM App — drizzle-orm Metro dynamic import](itm-drizzle-metro.md) — Metro can't resolve drizzle-orm via `await import()` dynamic syntax; use static top-level imports only
-- [ITM App — package versions for SDK 54](itm-package-versions.md) — pnpm installs latest by default; pin expo-sqlite@~16.0.10, expo-auth-session@~7.0.11, expo-secure-store@~15.0.8, expo-crypto@~15.0.8 for SDK 54
-- [Expo NativeTabs reject boolean children](expo-native-tabs-children.md) — conditional tab triggers must never render bare false/null inside NativeTabs (crashes iOS) or classic Tabs (warns).
+- [Monorepo composite type declarations](monorepo-composite-declarations.md) — after editing lib/* schema/exports, rebuild declarations or referencing projects' typecheck fails on new exports while runtime (esbuild) still works.
+- [ITM web cloud architecture](itm-web-cloud.md) — web has no SQLite; hooks must branch isWeb→cloud REST API before getDb(); entity API tenancy rules.

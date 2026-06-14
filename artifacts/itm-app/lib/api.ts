@@ -250,6 +250,40 @@ class ITMApiClient {
     const all = refs[standardCode] ?? [];
     return section ? all.filter((r) => r.section.includes(section)) : all;
   }
+
+  // ---- Generic cloud entity access (Postgres-backed, used on web) ----
+
+  async listEntity<T = Record<string, unknown>>(
+    entityType: string,
+    orgId: string,
+  ): Promise<T[]> {
+    const res = (await this.fetch(
+      `/entities/${entityType}?org_id=${encodeURIComponent(orgId)}`,
+    )) as { data: T[] };
+    return res.data ?? [];
+  }
+
+  async upsertEntity<T = Record<string, unknown>>(
+    entityType: string,
+    rows: T | T[],
+  ): Promise<T[]> {
+    const res = (await this.fetch(`/entities/${entityType}`, {
+      method: "POST",
+      body: JSON.stringify(rows),
+    })) as { data: T[] };
+    return res.data ?? [];
+  }
+
+  async deleteEntity(
+    entityType: string,
+    id: string,
+    orgId: string,
+  ): Promise<void> {
+    await this.fetch(
+      `/entities/${entityType}/${encodeURIComponent(id)}?org_id=${encodeURIComponent(orgId)}`,
+      { method: "DELETE" },
+    );
+  }
 }
 
 let client: ITMApiClient | null = null;

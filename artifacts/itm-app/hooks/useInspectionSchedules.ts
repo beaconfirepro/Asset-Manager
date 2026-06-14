@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { Platform } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { getDb } from "@/db/client";
 import { inspectionSchedules, type InspectionSchedule } from "@/db/schema";
+import { cloudList, cloudUpsert, isWeb } from "@/lib/cloud/repo";
 import { enqueue } from "@/lib/sync";
 
 export function useInspectionSchedules(seriesId?: string) {
@@ -11,9 +11,13 @@ export function useInspectionSchedules(seriesId?: string) {
 
   return useQuery({
     queryKey: ["inspection-schedules", orgId, seriesId ?? "all"],
-    enabled: Platform.OS !== "web" && !!orgId,
+    enabled: !!orgId,
     queryFn: async (): Promise<InspectionSchedule[]> => {
       if (!orgId) return [];
+      if (isWeb) {
+        const all = await cloudList<InspectionSchedule>("inspection_schedules", orgId);
+        return seriesId ? all.filter((s) => s.series_id === seriesId) : all;
+      }
       const db = await getDb();
       if (seriesId) {
         return db
@@ -49,12 +53,38 @@ export function useRescheduleVisit() {
 
   return useMutation({
     mutationFn: async (params: RescheduleParams) => {
-      if (Platform.OS === "web" || !orgId) return;
-      const db = await getDb();
+      if (!orgId) return;
       const now = new Date().toISOString();
 
       const deltaMs =
         new Date(params.newDate).getTime() - new Date(params.oldDate).getTime();
+
+      if (isWeb) {
+        const allCloud = await cloudList<InspectionSchedule>("inspection_schedules", orgId);
+        const toShiftCloud = allCloud.filter(
+          (s) =>
+            s.series_id === params.seriesId &&
+            s.scheduled_date >= params.oldDate &&
+            s.status !== "CANCELLED",
+        );
+        for (const sched of toShiftCloud) {
+          const shifted = new Date(new Date(sched.scheduled_date).getTime() + deltaMs)
+            .toISOString()
+            .slice(0, 10);
+          const isTarget = sched.id === params.scheduleId;
+          await cloudUpsert<InspectionSchedule>("inspection_schedules", {
+            ...sched,
+            scheduled_date: shifted,
+            rescheduled_from: isTarget ? params.oldDate : sched.rescheduled_from,
+            notes: isTarget ? (params.reason ?? null) : sched.notes,
+            updated_at: now,
+            sync_status: "SYNCED",
+          });
+        }
+        return;
+      }
+
+      const db = await getDb();
 
       const all = await db
         .select()

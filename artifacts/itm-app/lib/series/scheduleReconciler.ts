@@ -1,7 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db/client";
-import { inspectionSchedules, type InspectionSeries } from "@/db/schema";
+import { inspectionSchedules, type InspectionSchedule, type InspectionSeries } from "@/db/schema";
 import { getHubSpotConnector } from "@/lib/integrations/hubspot";
+import { cloudList, cloudUpsert } from "@/lib/cloud/repo";
 import { enqueue, genId } from "@/lib/sync";
 import { generateScheduleDates } from "./generateSchedules";
 
@@ -121,6 +122,68 @@ export async function reconcileSchedules(
         operation: "UPDATE",
         payload: { status: "DRAFT" },
         target_provider: "ITM",
+      });
+    }
+  }
+}
+
+// Web variant: reconciles schedules directly against the cloud Postgres API.
+// Mirrors reconcileSchedules but skips offline outbox + HubSpot ticket creation.
+export async function reconcileSchedulesCloud(
+  orgId: string,
+  series: InspectionSeries,
+): Promise<void> {
+  const now = new Date().toISOString();
+  const todayIso = now.slice(0, 10);
+
+  const targetDates = new Set(generateScheduleDates(series));
+
+  const all = await cloudList<InspectionSchedule>("inspection_schedules", orgId);
+  const existing = all.filter((s) => s.series_id === series.id);
+
+  const existingDateMap = new Map(
+    existing.map((s) => [s.scheduled_date.slice(0, 10), s]),
+  );
+
+  const existingFuture = existing.filter(
+    (s) => s.scheduled_date.slice(0, 10) >= todayIso && s.status !== "CANCELLED",
+  );
+
+  for (const sched of existingFuture) {
+    const d = sched.scheduled_date.slice(0, 10);
+    if (!targetDates.has(d)) {
+      await cloudUpsert<InspectionSchedule>("inspection_schedules", {
+        ...sched,
+        status: "CANCELLED",
+        updated_at: now,
+        sync_status: "SYNCED",
+      });
+    }
+  }
+
+  for (const date of targetDates) {
+    const existing_sched = existingDateMap.get(date);
+    if (!existing_sched) {
+      await cloudUpsert<InspectionSchedule>("inspection_schedules", {
+        id: genId(),
+        org_id: orgId,
+        series_id: series.id,
+        hubspot_asset_id: series.hubspot_asset_id,
+        scheduled_date: date,
+        status: "DRAFT",
+        hubspot_inspection_ticket_id: null,
+        rescheduled_from: null,
+        notes: null,
+        created_at: now,
+        updated_at: now,
+        sync_status: "SYNCED",
+      });
+    } else if (existing_sched.status === "CANCELLED" && date >= todayIso) {
+      await cloudUpsert<InspectionSchedule>("inspection_schedules", {
+        ...existing_sched,
+        status: "DRAFT",
+        updated_at: now,
+        sync_status: "SYNCED",
       });
     }
   }

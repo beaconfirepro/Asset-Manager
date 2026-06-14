@@ -14,6 +14,15 @@ export type HubSpotAsset = {
   properties: Record<string, unknown>;
 };
 
+export const STATIC_HUBSPOT_ASSETS: HubSpotAsset[] = [
+  { id: "hs_asset_001", name: "Main Lobby Sprinkler System", location: "Building A — Ground Floor", system_type: "FIRE_SPRINKLER", lifecycle_status: "ACTIVE", properties: { nfpa_standard: "NFPA 25" } },
+  { id: "hs_asset_002", name: "Kitchen Suppression Unit", location: "Building B — Kitchen", system_type: "KITCHEN_HOOD", lifecycle_status: "ACTIVE", properties: { nfpa_standard: "NFPA 96" } },
+  { id: "hs_asset_003", name: "Warehouse Alarm System", location: "Building C — Warehouse", system_type: "FIRE_ALARM", lifecycle_status: "INACTIVE", properties: { nfpa_standard: "NFPA 72" } },
+  { id: "hs_asset_004", name: "Parking Garage Suppression", location: "Building A — Garage", system_type: "SUPPRESSION", lifecycle_status: "ACTIVE", properties: { nfpa_standard: "NFPA 11" } },
+  { id: "hs_asset_005", name: "Emergency Egress Lighting", location: "Building B — All Floors", system_type: "EMERGENCY_LIGHTING", lifecycle_status: "ACTIVE", properties: { nfpa_standard: "NFPA 101" } },
+  { id: "hs_asset_006", name: "Server Room Halon System", location: "Building C — Data Center", system_type: "SPECIAL_HAZARD", lifecycle_status: "ACTIVE", properties: { nfpa_standard: "NFPA 2001" } },
+];
+
 export type HubSpotInspectionTicketParams = {
   org_id: string;
   hubspot_asset_id: string;
@@ -76,14 +85,7 @@ class HubSpotConnector {
       }
     }
 
-    const freshAssets: HubSpotAsset[] = [
-      { id: "hs_asset_001", name: "Main Lobby Sprinkler System", location: "Building A — Ground Floor", system_type: "FIRE_SPRINKLER", lifecycle_status: "ACTIVE", properties: { nfpa_standard: "NFPA 25" } },
-      { id: "hs_asset_002", name: "Kitchen Suppression Unit", location: "Building B — Kitchen", system_type: "KITCHEN_HOOD", lifecycle_status: "ACTIVE", properties: { nfpa_standard: "NFPA 96" } },
-      { id: "hs_asset_003", name: "Warehouse Alarm System", location: "Building C — Warehouse", system_type: "FIRE_ALARM", lifecycle_status: "INACTIVE", properties: { nfpa_standard: "NFPA 72" } },
-      { id: "hs_asset_004", name: "Parking Garage Suppression", location: "Building A — Garage", system_type: "SUPPRESSION", lifecycle_status: "ACTIVE", properties: { nfpa_standard: "NFPA 11" } },
-      { id: "hs_asset_005", name: "Emergency Egress Lighting", location: "Building B — All Floors", system_type: "EMERGENCY_LIGHTING", lifecycle_status: "ACTIVE", properties: { nfpa_standard: "NFPA 101" } },
-      { id: "hs_asset_006", name: "Server Room Halon System", location: "Building C — Data Center", system_type: "SPECIAL_HAZARD", lifecycle_status: "ACTIVE", properties: { nfpa_standard: "NFPA 2001" } },
-    ];
+    const freshAssets: HubSpotAsset[] = STATIC_HUBSPOT_ASSETS;
 
     await this.cacheObject(orgId, "asset_list", CACHE_KEY, freshAssets);
     for (const asset of freshAssets) {

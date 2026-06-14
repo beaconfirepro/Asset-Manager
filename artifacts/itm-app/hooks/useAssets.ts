@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Platform } from "react-native";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import {
@@ -10,7 +9,8 @@ import {
   maintenanceRecords,
   type AssetComplianceLink,
 } from "@/db/schema";
-import { getHubSpotConnector, type HubSpotAsset } from "@/lib/integrations/hubspot";
+import { getHubSpotConnector, STATIC_HUBSPOT_ASSETS, type HubSpotAsset } from "@/lib/integrations/hubspot";
+import { cloudList, cloudUpsert, isWeb } from "@/lib/cloud/repo";
 import { enqueue } from "@/lib/sync";
 import { useAuth } from "@/context/AuthContext";
 
@@ -33,16 +33,23 @@ export function useAssets() {
 
   return useQuery({
     queryKey: ["assets", orgId],
-    enabled: Platform.OS !== "web" && !!orgId,
+    enabled: !!orgId,
     queryFn: async (): Promise<AssetWithOverlay[]> => {
       if (!orgId) return [];
-      const db = await getDb();
-      const connector = getHubSpotConnector();
 
-      const [hsAssets, links] = await Promise.all([
-        connector.listAssets(orgId),
-        db.select().from(assetComplianceLinks).where(eq(assetComplianceLinks.org_id, orgId)),
-      ]);
+      const [hsAssets, links] = isWeb
+        ? await Promise.all([
+            Promise.resolve(STATIC_HUBSPOT_ASSETS),
+            cloudList<AssetComplianceLink>("asset_compliance_links", orgId),
+          ])
+        : await (async () => {
+            const db = await getDb();
+            const connector = getHubSpotConnector();
+            return Promise.all([
+              connector.listAssets(orgId),
+              db.select().from(assetComplianceLinks).where(eq(assetComplianceLinks.org_id, orgId)),
+            ]);
+          })();
 
       return hsAssets.map((asset) => {
         const assetLinks = links.filter((l) => l.hubspot_asset_id === asset.id);
@@ -95,9 +102,27 @@ export function useAssetHistory(hubspotAssetId: string) {
 
   return useQuery({
     queryKey: ["asset-history", orgId, hubspotAssetId],
-    enabled: Platform.OS !== "web" && !!orgId && !!hubspotAssetId,
+    enabled: !!orgId && !!hubspotAssetId,
     queryFn: async (): Promise<AssetHistory> => {
       if (!orgId) return { results: [], tests: [], maintenance: [], schedules: [] };
+
+      if (isWeb) {
+        const [allResults, allTests, allMaint, allSched] = await Promise.all([
+          cloudList<AssetHistory["results"][number]>("inspection_results", orgId),
+          cloudList<AssetHistory["tests"][number]>("system_tests", orgId),
+          cloudList<AssetHistory["maintenance"][number]>("maintenance_records", orgId),
+          cloudList<AssetHistory["schedules"][number]>("inspection_schedules", orgId),
+        ]);
+        const byAsset = <T extends { hubspot_asset_id: string }>(rows: T[]) =>
+          rows.filter((r) => r.hubspot_asset_id === hubspotAssetId);
+        return {
+          results: byAsset(allResults),
+          tests: byAsset(allTests),
+          maintenance: byAsset(allMaint),
+          schedules: byAsset(allSched),
+        };
+      }
+
       const db = await getDb();
 
       const [results, tests, maintenance, schedules] = await Promise.all([
@@ -133,9 +158,23 @@ export function useUpdateAssetOverlay() {
 
   return useMutation({
     mutationFn: async (params: UpdateOverlayParams) => {
-      if (Platform.OS === "web" || !orgId) return;
-      const db = await getDb();
+      if (!orgId) return;
       const now = new Date().toISOString();
+
+      if (isWeb) {
+        const links = await cloudList<AssetComplianceLink>("asset_compliance_links", orgId);
+        const current = links.find((l) => l.id === params.complianceLinkId);
+        if (!current) return;
+        await cloudUpsert<AssetComplianceLink>("asset_compliance_links", {
+          ...current,
+          notes: params.notes ?? null,
+          updated_at: now,
+          sync_status: "SYNCED",
+        });
+        return;
+      }
+
+      const db = await getDb();
 
       await db
         .update(assetComplianceLinks)

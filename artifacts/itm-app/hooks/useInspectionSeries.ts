@@ -1,24 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { and, eq } from "drizzle-orm";
-import { Platform } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { getDb } from "@/db/client";
 import {
   inspectionSeries,
+  type InspectionSchedule,
   type InspectionSeries,
   type NewInspectionSeries,
 } from "@/db/schema";
 import { enqueue, genId } from "@/lib/sync";
-import { reconcileSchedules } from "@/lib/series/scheduleReconciler";
+import { reconcileSchedules, reconcileSchedulesCloud } from "@/lib/series/scheduleReconciler";
+import { cloudDelete, cloudList, cloudUpsert, isWeb } from "@/lib/cloud/repo";
 
 export function useInspectionSeries() {
   const { orgId } = useAuth();
 
   return useQuery({
     queryKey: ["inspection-series", orgId],
-    enabled: Platform.OS !== "web" && !!orgId,
+    enabled: !!orgId,
     queryFn: async (): Promise<InspectionSeries[]> => {
       if (!orgId) return [];
+      if (isWeb) return cloudList<InspectionSeries>("inspection_series", orgId);
       const db = await getDb();
       return db.select().from(inspectionSeries).where(eq(inspectionSeries.org_id, orgId));
     },
@@ -34,8 +36,7 @@ export function useCreateSeries() {
 
   return useMutation({
     mutationFn: async (data: CreateSeriesInput): Promise<string | undefined> => {
-      if (Platform.OS === "web" || !orgId) return;
-      const db = await getDb();
+      if (!orgId) return;
       const now = new Date().toISOString();
       const seriesId = genId();
 
@@ -55,9 +56,16 @@ export function useCreateSeries() {
         notes: data.notes ?? null,
         created_at: now,
         updated_at: now,
-        sync_status: "PENDING",
+        sync_status: isWeb ? "SYNCED" : "PENDING",
       };
 
+      if (isWeb) {
+        await cloudUpsert<InspectionSeries>("inspection_series", newSeries);
+        await reconcileSchedulesCloud(orgId, newSeries);
+        return seriesId;
+      }
+
+      const db = await getDb();
       await db.insert(inspectionSeries).values(newSeries);
       await enqueue({
         org_id: orgId,
@@ -86,9 +94,25 @@ export function useUpdateSeries() {
 
   return useMutation({
     mutationFn: async (params: { id: string; data: Partial<InspectionSeries> }) => {
-      if (Platform.OS === "web" || !orgId) return;
-      const db = await getDb();
+      if (!orgId) return;
       const now = new Date().toISOString();
+
+      if (isWeb) {
+        const all = await cloudList<InspectionSeries>("inspection_series", orgId);
+        const current = all.find((s) => s.id === params.id);
+        if (!current) return;
+        const merged: InspectionSeries = {
+          ...current,
+          ...params.data,
+          updated_at: now,
+          sync_status: "SYNCED",
+        };
+        await cloudUpsert<InspectionSeries>("inspection_series", merged);
+        await reconcileSchedulesCloud(orgId, merged);
+        return;
+      }
+
+      const db = await getDb();
 
       await db
         .update(inspectionSeries)
@@ -126,10 +150,28 @@ export function useDeleteSeries() {
 
   return useMutation({
     mutationFn: async (seriesId: string) => {
-      if (Platform.OS === "web" || !orgId) return;
-      const db = await getDb();
+      if (!orgId) return;
       const now = new Date().toISOString();
       const todayIso = now.slice(0, 10);
+
+      if (isWeb) {
+        const allSched = await cloudList<InspectionSchedule>("inspection_schedules", orgId);
+        const future = allSched.filter(
+          (s) => s.series_id === seriesId && s.scheduled_date >= todayIso,
+        );
+        for (const sched of future) {
+          await cloudUpsert<InspectionSchedule>("inspection_schedules", {
+            ...sched,
+            status: "CANCELLED",
+            updated_at: now,
+            sync_status: "SYNCED",
+          });
+        }
+        await cloudDelete("inspection_series", seriesId, orgId);
+        return;
+      }
+
+      const db = await getDb();
 
       const { inspectionSchedules: schedTable } = await import("@/db/schema");
       const schedules = await db
