@@ -136,7 +136,6 @@ type SaveAnswerParams = {
   field: FormField;
   answer: string | boolean | string[] | null;
   currentFormData: string;
-  hubspotAssetId: string;
 };
 
 export function useSaveAnswer() {
@@ -158,33 +157,55 @@ export function useSaveAnswer() {
         .set({ form_data: newFormDataStr, updated_at: now, sync_status: "PENDING" })
         .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
 
-      if (isDeficient(params.field, params.answer)) {
-        const connector = getHubSpotConnector();
-        const result = await connector.createDeficiencyTicket({
-          org_id: orgId,
-          hubspot_asset_id: params.hubspotAssetId,
-          inspection_result_id: params.resultId,
-          deficiency_description: `Deficiency on field: ${params.field.label} — Answer: ${params.answer}`,
-          severity: params.field.deficiency_severity ?? "MEDIUM",
-        });
-
-        await db
-          .update(inspectionResults)
-          .set({
-            hubspot_deficiency_ticket_id: `pending_${result.client_uuid}`,
-            updated_at: now,
-            sync_status: "PENDING",
-          })
-          .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
-      }
-
       return newFormDataStr;
     },
-    onSuccess: (_, params) => {
-      const rows = qc.getQueryData<InspectionResult | null>(["inspection-result", orgId]);
-      if (rows) {
-        qc.invalidateQueries({ queryKey: ["inspection-result", orgId] });
-      }
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["inspection-result", orgId] });
+    },
+  });
+}
+
+type EnqueueDeficiencyParams = {
+  resultId: string;
+  field: FormField;
+  answer: string | boolean | string[] | null;
+  hubspotAssetId: string;
+  description: string;
+  severity: string;
+};
+
+export function useEnqueueDeficiency() {
+  const { orgId } = useAuth();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: EnqueueDeficiencyParams) => {
+      if (Platform.OS === "web" || !orgId) return;
+      const db = await getDb();
+      const now = new Date().toISOString();
+
+      const connector = getHubSpotConnector();
+      const outboxItem = await connector.createDeficiencyTicket({
+        org_id: orgId,
+        hubspot_asset_id: params.hubspotAssetId,
+        inspection_result_id: params.resultId,
+        deficiency_description: params.description || `Deficiency on: ${params.field.label} — ${params.answer}`,
+        severity: params.severity,
+      });
+
+      await db
+        .update(inspectionResults)
+        .set({
+          hubspot_deficiency_ticket_id: `pending_${outboxItem.client_uuid}`,
+          updated_at: now,
+          sync_status: "PENDING",
+        })
+        .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
+
+      return outboxItem.client_uuid;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["inspection-result", orgId] });
     },
   });
 }
@@ -192,8 +213,9 @@ export function useSaveAnswer() {
 type AttachMediaParams = {
   resultId: string;
   scheduleId: string;
-  type: "photo" | "signature" | "gps";
+  type: "photo" | "photo_remove" | "signature" | "gps";
   photoUrl?: string;
+  replacePhotoUrls?: string[];
   signatureUrl?: string;
   gpsLat?: number;
   gpsLng?: number;
@@ -215,6 +237,10 @@ export function useAttachMedia() {
         const updated = [...existing, params.photoUrl];
         await db.update(inspectionResults)
           .set({ photo_urls: JSON.stringify(updated), updated_at: now, sync_status: "PENDING" })
+          .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
+      } else if (params.type === "photo_remove" && params.replacePhotoUrls) {
+        await db.update(inspectionResults)
+          .set({ photo_urls: JSON.stringify(params.replacePhotoUrls), updated_at: now, sync_status: "PENDING" })
           .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
       } else if (params.type === "signature" && params.signatureUrl) {
         await db.update(inspectionResults)

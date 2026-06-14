@@ -17,7 +17,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
-import { useInspectionResult, useStartInspection, useSaveAnswer, useAttachMedia, useSubmitInspection } from "@/hooks/useInspections";
+import { useInspectionResult, useStartInspection, useSaveAnswer, useEnqueueDeficiency, useAttachMedia, useSubmitInspection } from "@/hooks/useInspections";
 import { useActiveForm } from "@/hooks/useInspectionForms";
 import { useInspectionSchedules } from "@/hooks/useInspectionSchedules";
 import { useInspectionSeries } from "@/hooks/useInspectionSeries";
@@ -104,6 +104,8 @@ export default function InspectionWorkspaceScreen() {
     }
   }, [result?.photo_urls]);
 
+  const enqueueDeficiency = useEnqueueDeficiency();
+
   const handleAnswer = useCallback(
     async (field: FormField, answer: string | boolean | string[] | null) => {
       if (!result) return;
@@ -112,7 +114,6 @@ export default function InspectionWorkspaceScreen() {
         field,
         answer,
         currentFormData: result.form_data,
-        hubspotAssetId: result.hubspot_asset_id,
       });
       setResult((prev) =>
         prev
@@ -129,16 +130,17 @@ export default function InspectionWorkspaceScreen() {
   const handleDeficiencyReport = useCallback(
     async (field: FormField, description: string, severity: string) => {
       if (!result) return;
-      await saveAnswer.mutateAsync({
+      await enqueueDeficiency.mutateAsync({
         resultId: result.id,
-        field: { ...field, deficiency_trigger: String(formData[field.id]) },
+        field,
         answer: formData[field.id] as string,
-        currentFormData: result.form_data,
         hubspotAssetId: result.hubspot_asset_id,
+        description,
+        severity,
       });
       setReportedDeficiencies((prev) => new Set([...prev, field.id]));
     },
-    [result, formData, saveAnswer],
+    [result, formData, enqueueDeficiency],
   );
 
   const handleAddPhoto = useCallback(
@@ -170,9 +172,8 @@ export default function InspectionWorkspaceScreen() {
       await attachMedia.mutateAsync({
         resultId: result.id,
         scheduleId: scheduleId!,
-        type: "photo",
-        photoUrl: uri,
-        currentPhotoUrls: JSON.stringify(updated),
+        type: "photo_remove",
+        replacePhotoUrls: updated,
       });
       setResult((prev) => prev ? { ...prev, photo_urls: JSON.stringify(updated) } : prev);
     },

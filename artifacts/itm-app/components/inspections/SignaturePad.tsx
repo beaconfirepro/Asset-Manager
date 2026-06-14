@@ -71,7 +71,7 @@ export function SignaturePad({ signatureUrl, onSave, onClear, disabled }: Props)
       strokes,
       timestamp: new Date().toISOString(),
     });
-    onSave(`data:application/json;base64,${btoa(sigData)}`);
+    onSave(`sig_strokes_v1:${sigData}`);
   };
 
   const hasSignature = signatureUrl && signatureUrl.length > 0;

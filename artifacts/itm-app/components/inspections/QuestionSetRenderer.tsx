@@ -46,11 +46,13 @@ function PassFailField({
   value,
   onChange,
   colors,
+  disabled,
 }: {
   field: FormField;
   value: string | null;
   onChange: (v: string) => void;
   colors: ReturnType<typeof useColors>;
+  disabled?: boolean;
 }) {
   return (
     <View style={styles.passFailRow}>
@@ -60,7 +62,8 @@ function PassFailField({
         return (
           <Pressable
             key={opt}
-            onPress={() => onChange(opt)}
+            onPress={() => !disabled && onChange(opt)}
+            disabled={disabled}
             style={[
               styles.passFailBtn,
               {
@@ -140,6 +143,7 @@ export function QuestionSetRenderer({
               value={typeof raw === "string" ? raw : null}
               onChange={(v) => onAnswer(field, v)}
               colors={colors}
+              disabled={disabled}
             />
           )}
 
@@ -150,7 +154,8 @@ export function QuestionSetRenderer({
                 return (
                   <Pressable
                     key={opt}
-                    onPress={() => onAnswer(field, opt)}
+                    onPress={() => !disabled && onAnswer(field, opt)}
+                    disabled={disabled}
                     style={[
                       styles.passFailBtn,
                       {
@@ -199,7 +204,8 @@ export function QuestionSetRenderer({
                 return (
                   <Pressable
                     key={opt}
-                    onPress={() => onAnswer(field, opt)}
+                    onPress={() => !disabled && onAnswer(field, opt)}
+                    disabled={disabled}
                     style={[
                       styles.selectOption,
                       {
