@@ -11,40 +11,43 @@ import { useColors } from "@/hooks/useColors";
 import { FEATURES } from "@/lib/featureFlags";
 
 function NativeTabLayout() {
-  return (
-    <NativeTabs>
-      <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: "square.grid.2x2", selected: "square.grid.2x2.fill" }} />
-        <Label>Dashboard</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="assets">
-        <Icon sf={{ default: "building.2", selected: "building.2.fill" }} />
-        <Label>Assets</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="series">
-        <Icon sf={{ default: "repeat", selected: "repeat.1" }} />
-        <Label>Contracts</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="calendar">
-        <Icon sf={{ default: "calendar", selected: "calendar" }} />
-        <Label>Calendar</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="reports">
-        <Icon sf={{ default: "doc.text", selected: "doc.text.fill" }} />
-        <Label>Reports</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="testing">
-        <Icon sf={{ default: "flask", selected: "flask.fill" }} />
-        <Label>Testing</Label>
-      </NativeTabs.Trigger>
-      {FEATURES.AI_CODE_INTELLIGENCE && (
-        <NativeTabs.Trigger name="ai">
-          <Icon sf={{ default: "sparkles", selected: "sparkles" }} />
-          <Label>AI</Label>
-        </NativeTabs.Trigger>
-      )}
-    </NativeTabs>
-  );
+  const triggers = [
+    <NativeTabs.Trigger key="index" name="index">
+      <Icon sf={{ default: "square.grid.2x2", selected: "square.grid.2x2.fill" }} />
+      <Label>Dashboard</Label>
+    </NativeTabs.Trigger>,
+    <NativeTabs.Trigger key="assets" name="assets">
+      <Icon sf={{ default: "building.2", selected: "building.2.fill" }} />
+      <Label>Assets</Label>
+    </NativeTabs.Trigger>,
+    <NativeTabs.Trigger key="series" name="series">
+      <Icon sf={{ default: "repeat", selected: "repeat.1" }} />
+      <Label>Contracts</Label>
+    </NativeTabs.Trigger>,
+    <NativeTabs.Trigger key="calendar" name="calendar">
+      <Icon sf={{ default: "calendar", selected: "calendar" }} />
+      <Label>Calendar</Label>
+    </NativeTabs.Trigger>,
+    <NativeTabs.Trigger key="reports" name="reports">
+      <Icon sf={{ default: "doc.text", selected: "doc.text.fill" }} />
+      <Label>Reports</Label>
+    </NativeTabs.Trigger>,
+    <NativeTabs.Trigger key="testing" name="testing">
+      <Icon sf={{ default: "flask", selected: "flask.fill" }} />
+      <Label>Testing</Label>
+    </NativeTabs.Trigger>,
+  ];
+
+  if (FEATURES.AI_CODE_INTELLIGENCE) {
+    triggers.push(
+      <NativeTabs.Trigger key="ai" name="ai">
+        <Icon sf={{ default: "sparkles", selected: "sparkles" }} />
+        <Label>AI</Label>
+      </NativeTabs.Trigger>,
+    );
+  }
+
+  return <NativeTabs>{triggers}</NativeTabs>;
 }
 
 function ClassicTabLayout() {
@@ -161,21 +164,20 @@ function ClassicTabLayout() {
             ),
         }}
       />
-      {FEATURES.AI_CODE_INTELLIGENCE && (
-        <Tabs.Screen
-          name="ai"
-          options={{
-            title: "AI",
-            headerShown: false,
-            tabBarIcon: ({ color }) =>
-              isIOS ? (
-                <SymbolView name="sparkles" tintColor={color} size={24} />
-              ) : (
-                <Feather name="cpu" size={22} color={color} />
-              ),
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="ai"
+        options={{
+          title: "AI",
+          headerShown: false,
+          href: FEATURES.AI_CODE_INTELLIGENCE ? undefined : null,
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="sparkles" tintColor={color} size={24} />
+            ) : (
+              <Feather name="cpu" size={22} color={color} />
+            ),
+        }}
+      />
     </Tabs>
   );
 }
