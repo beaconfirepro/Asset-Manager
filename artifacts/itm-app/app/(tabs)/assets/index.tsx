@@ -45,10 +45,16 @@ export default function AssetRegistryScreen() {
   const { data: assets = [], isLoading, refetch, isRefetching } = useAssets();
 
   const [search, setSearch] = useState("");
+  const [locationFilter, setLocationFilter] = useState("All");
   const [systemTypeFilter, setSystemTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
 
   const topPad = Platform.OS === "web" ? 67 : 0;
+
+  const locations = useMemo(() => {
+    const unique = Array.from(new Set(assets.map((a) => a.location).filter(Boolean)));
+    return ["All", ...unique.sort()];
+  }, [assets]);
 
   const filtered = useMemo(() => {
     return assets.filter((a) => {
@@ -56,11 +62,12 @@ export default function AssetRegistryScreen() {
         !search ||
         a.name.toLowerCase().includes(search.toLowerCase()) ||
         (a.location ?? "").toLowerCase().includes(search.toLowerCase());
+      const matchLocation = locationFilter === "All" || a.location === locationFilter;
       const matchType = systemTypeFilter === "All" || a.system_type === systemTypeFilter;
       const matchStatus = statusFilter === "All" || a.overallStatus === statusFilter;
-      return matchSearch && matchType && matchStatus;
+      return matchSearch && matchLocation && matchType && matchStatus;
     });
-  }, [assets, search, systemTypeFilter, statusFilter]);
+  }, [assets, search, locationFilter, systemTypeFilter, statusFilter]);
 
   return (
     <ScrollView
@@ -94,6 +101,18 @@ export default function AssetRegistryScreen() {
           clearButtonMode="while-editing"
         />
       </View>
+
+      <Text style={[styles.filterLabel, { color: colors.mutedForeground }]}>Location</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+        {locations.map((l) => (
+          <FilterChip
+            key={l}
+            label={l}
+            active={locationFilter === l}
+            onPress={() => setLocationFilter(l)}
+          />
+        ))}
+      </ScrollView>
 
       <Text style={[styles.filterLabel, { color: colors.mutedForeground }]}>System Type</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>

@@ -136,7 +136,7 @@ export function useDashboard() {
             type: "EXPIRING_CALIBRATION",
             title: e.calibration_status === "DUE_SOON" ? "Calibration Due Soon" : "Calibration Expired",
             subtitle: `${e.name}${e.serial_number ? " · " + e.serial_number : ""}`,
-            href: "/testing",
+            href: "/assets",
             severity: e.calibration_status === "DUE_SOON" ? "medium" : "high",
           });
         });
@@ -150,7 +150,7 @@ export function useDashboard() {
             type: "DUE_SOON",
             title: "Booked Series Active",
             subtitle: s.name,
-            href: "/series",
+            href: "/assets",
             severity: "low",
           });
         });
