@@ -4,8 +4,8 @@ packages:
   - lib/integrations/*
   - scripts
 
-allowBuilds:
-  esbuild: true
+# allowBuilds:
+#   esbuild: true
 
 autoInstallPeers: false
 
