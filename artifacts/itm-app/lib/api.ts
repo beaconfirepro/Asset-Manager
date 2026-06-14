@@ -176,7 +176,7 @@ class ITMApiClient {
     standardCode: string,
   ): Promise<GeneratedFormDraft> {
     try {
-      const result = await this.fetch("/itm/forms/ai-generate", {
+      const result = await this.fetch("/forms/ai-generate", {
         method: "POST",
         body: JSON.stringify({ org_id: orgId, system_type: systemType, standard_code: standardCode }),
       });

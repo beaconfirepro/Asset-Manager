@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { useComplianceStandards } from "@/hooks/useComplianceStandards";
 import { useCreateInspectionForm } from "@/hooks/useInspectionForms";
-import { useCreateAiSuggestion } from "@/hooks/useAiSuggestions";
+import { useCreateAiSuggestion, useAcceptAiSuggestion, useRejectAiSuggestion } from "@/hooks/useAiSuggestions";
 import { getITMApiClient, type GeneratedFormDraft, type GeneratedFormField } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
@@ -52,6 +52,8 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
   const { data: standards = [] } = useComplianceStandards();
   const createForm = useCreateInspectionForm();
   const logSuggestion = useCreateAiSuggestion();
+  const acceptSuggestion = useAcceptAiSuggestion();
+  const rejectSuggestion = useRejectAiSuggestion();
 
   const selectedStandard = standards.find((s) => s.id === selectedStandardId);
 
@@ -127,7 +129,7 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
       });
 
       if (formId) {
-        await logSuggestion.mutateAsync({
+        const suggId = await logSuggestion.mutateAsync({
           suggestion_type: "FORM_GENERATION",
           payload: {
             form_id: formId,
@@ -142,6 +144,9 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
           context_id: formId,
           model_version: "stub-v1",
         });
+        if (suggId) {
+          await acceptSuggestion.mutateAsync(suggId);
+        }
         onFormCreated(formId);
       }
 
@@ -155,17 +160,24 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
 
   const handleReject = async () => {
     if (!draft || !orgId) return;
-    await logSuggestion.mutateAsync({
-      suggestion_type: "FORM_GENERATION",
-      payload: {
-        rejected: true,
-        system_type: draft.system_type,
-        standard_code: draft.compliance_standard_code,
-      },
-      context_type: "inspection_form",
-      context_id: null,
-      model_version: "stub-v1",
-    }).catch(() => {});
+    try {
+      const suggId = await logSuggestion.mutateAsync({
+        suggestion_type: "FORM_GENERATION",
+        payload: {
+          rejected: true,
+          system_type: draft.system_type,
+          standard_code: draft.compliance_standard_code,
+        },
+        context_type: "inspection_form",
+        context_id: null,
+        model_version: "stub-v1",
+      });
+      if (suggId) {
+        await rejectSuggestion.mutateAsync(suggId);
+      }
+    } catch {
+      // best-effort — close regardless
+    }
     handleReset();
     onClose();
   };

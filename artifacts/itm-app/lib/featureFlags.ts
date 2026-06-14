@@ -11,5 +11,7 @@
  *     Defaults to enabled when the variable is absent or any value other than "false".
  */
 export const FEATURES = {
-  AI_CODE_INTELLIGENCE: process.env.EXPO_PUBLIC_AI_ENABLED !== "false",
+  AI_CODE_INTELLIGENCE: process.env.EXPO_PUBLIC_AI_ENABLED === "true",
 } as const;
+
+// To enable Phase 6 AI surfaces, set: EXPO_PUBLIC_AI_ENABLED=true
