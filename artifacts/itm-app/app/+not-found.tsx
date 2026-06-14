@@ -20,7 +20,6 @@ export default function NotFoundScreen() {
             Go to home screen!
           </Text>
         </Link>
-      </View>
       </ScreenWrapper>
     </>
   );
