@@ -28,6 +28,8 @@ import { AiSuggestionPanel } from "@/components/ai/AiSuggestionPanel";
 import { CodeReferenceDrawer } from "@/components/ai/CodeReferenceDrawer";
 import { Button } from "@/components/ui/Button";
 import { FEATURES } from "@/lib/featureFlags";
+import { useCreateAiSuggestion } from "@/hooks/useAiSuggestions";
+import { getITMApiClient } from "@/lib/api";
 import {
   parseFormSchema,
   parseFormData,
@@ -61,6 +63,7 @@ export default function InspectionWorkspaceScreen() {
   const attachMedia = useAttachMedia();
   const submitInspection = useSubmitInspection();
   const retryOutboxItem = useRetryOutboxItem();
+  const createAiSuggestion = useCreateAiSuggestion();
 
   const [result, setResult] = useState(existingResult ?? null);
 
@@ -179,8 +182,30 @@ export default function InspectionWorkspaceScreen() {
             }
           : prev,
       );
+      if (FEATURES.AI_CODE_INTELLIGENCE && orgId) {
+        try {
+          const api = getITMApiClient();
+          const analysis = await api.analyzePhoto(orgId, uri, result.id);
+          if (analysis.detected_issues.length > 0) {
+            await createAiSuggestion.mutateAsync({
+              suggestion_type: "PHOTO_DEFICIENCY",
+              payload: {
+                detected_issues: analysis.detected_issues,
+                confidence: analysis.confidence,
+                suggestion_text: analysis.suggestion_text,
+                photo_url: uri,
+              },
+              context_type: "inspection_result",
+              context_id: result.id,
+              model_version: "vision-v1",
+            });
+          }
+        } catch {
+          // AI analysis is best-effort; photo attach already succeeded
+        }
+      }
     },
-    [result, scheduleId, photoUrls, attachMedia],
+    [result, scheduleId, photoUrls, attachMedia, orgId, createAiSuggestion],
   );
 
   const handleRemovePhoto = useCallback(

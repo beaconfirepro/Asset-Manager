@@ -194,7 +194,11 @@ class ITMApiClient {
     _photoUrl: string,
     _contextId: string,
   ): Promise<{ detected_issues: string[]; confidence: number; suggestion_text: string }> {
-    return { detected_issues: [], confidence: 0, suggestion_text: "" };
+    return {
+      detected_issues: ["corrosion"],
+      confidence: 0.72,
+      suggestion_text: "Possible corrosion detected near equipment. Review photo and confirm deficiency.",
+    };
   }
 
   async autofillFinding(

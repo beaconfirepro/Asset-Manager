@@ -16,7 +16,7 @@ import { AiSuggestionPanel } from "@/components/ai/AiSuggestionPanel";
 import { CodeReferenceDrawer } from "@/components/ai/CodeReferenceDrawer";
 import { useComplianceStandards } from "@/hooks/useComplianceStandards";
 import { useAiSuggestions } from "@/hooks/useAiSuggestions";
-import { getITMApiClient, type CodeUpdateResult } from "@/lib/api";
+import { useCodeUpdateFlags } from "@/hooks/useCodeUpdateFlags";
 import { useAuth } from "@/context/AuthContext";
 import { FEATURES } from "@/lib/featureFlags";
 import { Platform } from "react-native";
@@ -28,12 +28,9 @@ export default function AiCodeIntelligenceScreen() {
   const { orgId } = useAuth();
   const [activeTab, setActiveTab] = useState<AiTab>("suggestions");
   const [showCodeRef, setShowCodeRef] = useState(false);
-  const [codeUpdates, setCodeUpdates] = useState<CodeUpdateResult[]>([]);
-  const [checkingUpdates, setCheckingUpdates] = useState(false);
-  const [updatesChecked, setUpdatesChecked] = useState(false);
-
   const { data: standards = [], isLoading: standardsLoading, refetch: refetchStandards } = useComplianceStandards();
   const { data: suggestions = [], isLoading: suggestionsLoading, refetch: refetchSuggestions } = useAiSuggestions();
+  const { data: codeUpdateFlags = [], isLoading: flagsLoading, refetch: refetchFlags } = useCodeUpdateFlags();
 
   if (!FEATURES.AI_CODE_INTELLIGENCE) {
     return (
@@ -49,24 +46,10 @@ export default function AiCodeIntelligenceScreen() {
 
   const pendingCount = suggestions.filter((s) => s.status === "PENDING").length;
 
-  const handleCheckUpdates = async () => {
-    if (!orgId) return;
-    setCheckingUpdates(true);
-    try {
-      const api = getITMApiClient();
-      const results = await api.detectCodeUpdates(orgId);
-      setCodeUpdates(results);
-      setUpdatesChecked(true);
-    } finally {
-      setCheckingUpdates(false);
-    }
-  };
-
   const handleRefresh = () => {
     refetchSuggestions();
     refetchStandards();
-    setUpdatesChecked(false);
-    setCodeUpdates([]);
+    refetchFlags();
   };
 
   return (
@@ -190,58 +173,56 @@ export default function AiCodeIntelligenceScreen() {
         )}
 
         {activeTab === "code_updates" && (
-          <View style={styles.codeUpdates}>
-            <View style={[styles.codeUpdatesInfo, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-              <Feather name="alert-circle" size={14} color={colors.mutedForeground} />
-              <Text style={[styles.codeUpdatesInfoText, { color: colors.mutedForeground }]}>
-                Code-update detection checks whether any active inspection forms reference a compliance standard whose version has changed since the form was last generated.
-              </Text>
-            </View>
-
-            <Button
-              label={checkingUpdates ? "Checking…" : "Check for Code Updates"}
-              onPress={handleCheckUpdates}
-              disabled={checkingUpdates}
-            />
-
-            {checkingUpdates && (
-              <View style={styles.checkingRow}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={[styles.checkingText, { color: colors.mutedForeground }]}>
-                  Scanning active forms…
+          Platform.OS === "web" ? (
+            <WebPlaceholder label="Code update detection available on device" colors={colors} />
+          ) : (
+            <View style={styles.codeUpdates}>
+              <View style={[styles.codeUpdatesInfo, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+                <Feather name="alert-circle" size={14} color={colors.mutedForeground} />
+                <Text style={[styles.codeUpdatesInfoText, { color: colors.mutedForeground }]}>
+                  Detects active inspection forms whose linked NFPA standard became effective after the form was last modified. Pull to refresh.
                 </Text>
               </View>
-            )}
 
-            {updatesChecked && codeUpdates.length === 0 && (
-              <View style={[styles.noUpdates, { backgroundColor: colors.success + "12", borderColor: colors.success + "33" }]}>
-                <Feather name="check-circle" size={18} color={colors.success} />
-                <Text style={[styles.noUpdatesText, { color: colors.success }]}>
-                  All active forms are up to date with current NFPA code versions.
-                </Text>
-              </View>
-            )}
-
-            {codeUpdates.map((update) => (
-              <View
-                key={update.form_id}
-                style={[styles.updateCard, { backgroundColor: colors.warning + "12", borderColor: colors.warning + "44" }]}
-              >
-                <View style={styles.updateCardHeader}>
-                  <Feather name="alert-triangle" size={14} color={colors.warning} />
-                  <Text style={[styles.updateFormName, { color: colors.foreground }]} numberOfLines={1}>
-                    {update.form_name}
+              {flagsLoading && (
+                <View style={styles.checkingRow}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text style={[styles.checkingText, { color: colors.mutedForeground }]}>
+                    Scanning active forms…
                   </Text>
                 </View>
-                <Text style={[styles.updateDetail, { color: colors.mutedForeground }]}>
-                  {update.standard_code} · Current: v{update.current_version} → Latest: v{update.latest_version}
-                </Text>
-                <Text style={[styles.updateSummary, { color: colors.foreground }]}>
-                  {update.change_summary}
-                </Text>
-              </View>
-            ))}
-          </View>
+              )}
+
+              {!flagsLoading && codeUpdateFlags.length === 0 && (
+                <View style={[styles.noUpdates, { backgroundColor: colors.success + "12", borderColor: colors.success + "33" }]}>
+                  <Feather name="check-circle" size={18} color={colors.success} />
+                  <Text style={[styles.noUpdatesText, { color: colors.success }]}>
+                    All active forms are up to date with current NFPA standard versions.
+                  </Text>
+                </View>
+              )}
+
+              {codeUpdateFlags.map((flag) => (
+                <View
+                  key={flag.form_id}
+                  style={[styles.updateCard, { backgroundColor: colors.warning + "12", borderColor: colors.warning + "44" }]}
+                >
+                  <View style={styles.updateCardHeader}>
+                    <Feather name="alert-triangle" size={14} color={colors.warning} />
+                    <Text style={[styles.updateFormName, { color: colors.foreground }]} numberOfLines={1}>
+                      {flag.form_name}
+                    </Text>
+                  </View>
+                  <Text style={[styles.updateDetail, { color: colors.mutedForeground }]}>
+                    {flag.standard_code} v{flag.standard_version} · standard effective {flag.standard_effective_date} · form last updated {flag.form_updated_at}
+                  </Text>
+                  <Text style={[styles.updateSummary, { color: colors.foreground }]}>
+                    {flag.change_summary}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )
         )}
       </ScrollView>
 

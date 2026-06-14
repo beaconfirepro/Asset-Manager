@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { SystemTypeBadge } from "@/components/assets/SystemTypeBadge";
 import { AiGenerateFormModal } from "@/components/ai/AiGenerateFormModal";
 import { FEATURES } from "@/lib/featureFlags";
+import { useCodeUpdateFlags } from "@/hooks/useCodeUpdateFlags";
 import type { InspectionForm } from "@/db/schema";
 
 export default function AdminFormsListScreen() {
@@ -23,6 +24,8 @@ export default function AdminFormsListScreen() {
   const router = useRouter();
   const { data: forms = [], isLoading, refetch } = useInspectionForms();
   const [showAiModal, setShowAiModal] = useState(false);
+  const { data: updateFlags = [] } = useCodeUpdateFlags();
+  const outdatedFormIds = new Set(updateFlags.map((f) => f.form_id));
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -76,6 +79,12 @@ export default function AdminFormsListScreen() {
                 {item.ai_generated && (
                   <Badge label="AI" variant="muted" size="sm" />
                 )}
+                {FEATURES.AI_CODE_INTELLIGENCE && outdatedFormIds.has(item.id) && (
+                  <View style={[styles.codeUpdateFlag, { backgroundColor: colors.warning + "18", borderColor: colors.warning + "44" }]}>
+                    <Feather name="alert-triangle" size={10} color={colors.warning} />
+                    <Text style={[styles.codeUpdateFlagText, { color: colors.warning }]}>Standard updated</Text>
+                  </View>
+                )}
               </View>
             </Pressable>
           );
@@ -121,6 +130,8 @@ const styles = StyleSheet.create({
   cardMeta: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 10 },
   metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
   metaText: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  codeUpdateFlag: { flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 6, borderWidth: 1, paddingHorizontal: 6, paddingVertical: 2 },
+  codeUpdateFlagText: { fontSize: 10, fontFamily: "Inter_500Medium" },
   fab: {
     position: "absolute",
     bottom: 96,
