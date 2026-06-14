@@ -2,7 +2,12 @@ import * as SQLite from "expo-sqlite";
 import { drizzle } from "drizzle-orm/expo-sqlite";
 import * as schema from "./schema";
 
-const DB_NAME = "itm_v1.db";
+// Bumped v1 -> v2 with the series->contracts rename: tables/columns changed
+// (inspection_series -> inspection_contracts, series_id -> contract_id) and the
+// schema is created with CREATE TABLE IF NOT EXISTS, so an existing v1 file would
+// keep the stale schema. Bumping the DB name gives existing installs a fresh,
+// correctly-shaped DB (re-seeded on launch; cloud Postgres is the source of truth).
+const DB_NAME = "itm_v2.db";
 
 let dbInstance: ReturnType<typeof drizzle> | null = null;
 let initPromise: Promise<ReturnType<typeof drizzle>> | null = null;

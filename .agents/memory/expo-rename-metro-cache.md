@@ -21,3 +21,11 @@ A clean re-bundle should show no resolution/route errors — only the usual depr
 
 **Companion:** renaming an exported symbol in `lib/db` also needs a declarations rebuild
 (`tsc -b lib/db --force`) for the api-server typecheck — see monorepo-composite-declarations.md.
+
+**Native SQLite schema rename:** `artifacts/itm-app/db/client.ts` builds the local DB with
+`CREATE TABLE IF NOT EXISTS` against a fixed `DB_NAME` (e.g. `itm_v2.db`). Renaming a table or
+column does NOT migrate an existing on-device DB — the old table/column persists and inserts
+using the new name fail (`no column named ...`). On any table/column rename, bump `DB_NAME`
+(`itm_vN.db` -> `itm_v(N+1).db`) so existing installs get a fresh, correctly-shaped DB. Safe
+because cloud Postgres is the source of truth and local data re-seeds/re-syncs on launch.
+
