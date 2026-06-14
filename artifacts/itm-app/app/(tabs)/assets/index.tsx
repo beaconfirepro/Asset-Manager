@@ -49,7 +49,6 @@ export default function AssetRegistryScreen() {
   const [systemTypeFilter, setSystemTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  const topPad = Platform.OS === "web" ? 67 : 0;
 
   const locations = useMemo(() => {
     const unique = Array.from(new Set(assets.map((a) => a.location).filter(Boolean)));
@@ -72,7 +71,7 @@ export default function AssetRegistryScreen() {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={[styles.content, { paddingTop: topPad + 16, paddingBottom: insets.bottom + 40 }]}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + (Platform.OS === "web" ? 96 : 40) }]}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl

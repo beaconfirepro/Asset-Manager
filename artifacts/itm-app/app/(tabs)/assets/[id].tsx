@@ -55,7 +55,6 @@ export default function AssetDetailScreen() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [crewShiftLoading, setCrewShiftLoading] = useState(false);
 
-  const topPad = Platform.OS === "web" ? 67 : 0;
 
   const handleCreateCrewShift = async () => {
     if (!asset || !orgId) return;
@@ -108,7 +107,7 @@ export default function AssetDetailScreen() {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={[styles.content, { paddingTop: topPad + 16, paddingBottom: insets.bottom + 40 }]}
+      contentContainerStyle={[styles.content, { paddingTop: 16, paddingBottom: insets.bottom + (Platform.OS === "web" ? 96 : 40) }]}
       showsVerticalScrollIndicator={false}
     >
       <Pressable onPress={() => router.back()} style={styles.backRow}>

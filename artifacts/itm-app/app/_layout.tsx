@@ -72,6 +72,19 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof document === "undefined") return;
+    if (document.getElementById("itm-web-overrides")) return;
+    const style = document.createElement("style");
+    style.id = "itm-web-overrides";
+    style.textContent = `
+      html, body, #root { height: 100%; margin: 0; overflow: hidden; }
+      *::-webkit-scrollbar { width: 0 !important; height: 0 !important; background: transparent !important; }
+      * { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+    `;
+    document.head.appendChild(style);
+  }, []);
+
   if (!fontsLoaded && !fontError && Platform.OS !== "web") return null;
 
   return (

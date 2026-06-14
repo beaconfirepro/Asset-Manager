@@ -92,6 +92,7 @@ function ClassicTabLayout() {
         name="index"
         options={{
           title: "Dashboard",
+          headerShown: false,
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="square.grid.2x2" tintColor={color} size={24} />

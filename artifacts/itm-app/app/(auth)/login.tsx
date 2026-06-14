@@ -117,8 +117,8 @@ export default function LoginScreen() {
         styles.container,
         {
           backgroundColor: colors.background,
-          paddingTop: insets.top + (Platform.OS === "web" ? 67 : 0),
-          paddingBottom: insets.bottom + (Platform.OS === "web" ? 34 : 0),
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
         },
       ]}
     >

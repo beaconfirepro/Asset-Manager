@@ -18,7 +18,7 @@ export default function DashboardScreen() {
   const { session } = useAuth();
   const router = useRouter();
   const { data, isLoading, refetch, isRefetching } = useDashboard();
-  const topPad = Platform.OS === "web" ? 67 : 0;
+  const bottomPad = insets.bottom + (Platform.OS === "web" ? 96 : 40);
 
   const health = data?.complianceHealth ?? { compliant: 0, nonCompliant: 0, pending: 0, exempt: 0, total: 0 };
 
@@ -27,7 +27,7 @@ export default function DashboardScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={[
         styles.content,
-        { paddingTop: topPad + 16, paddingBottom: insets.bottom + 40 },
+        { paddingTop: insets.top + 16, paddingBottom: bottomPad },
       ]}
       showsVerticalScrollIndicator={false}
       refreshControl={

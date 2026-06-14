@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -92,7 +93,7 @@ export default function CalendarScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 16, gap: 12, paddingBottom: 40 },
+  content: { padding: 16, gap: 12, paddingBottom: Platform.OS === "web" ? 96 : 40 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   subtitle: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 4 },
   statsRow: { flexDirection: "row", gap: 10 },

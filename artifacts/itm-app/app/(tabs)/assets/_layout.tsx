@@ -15,7 +15,7 @@ export default function AssetsLayout() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Assets" }} />
+      <Stack.Screen name="index" options={{ title: "Assets", headerShown: false }} />
       <Stack.Screen name="[id]" options={{ title: "Asset Detail", headerBackTitle: "Assets" }} />
     </Stack>
   );
