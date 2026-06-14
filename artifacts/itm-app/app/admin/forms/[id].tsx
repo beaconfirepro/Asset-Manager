@@ -17,9 +17,11 @@ export default function AdminFormEditScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <ActivityIndicator color={colors.primary} />
-      </View>
+      <ScreenWrapper>
+        <View style={[styles.center, { backgroundColor: colors.background }]}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      </ScreenWrapper>
     );
   }
 
