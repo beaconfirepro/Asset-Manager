@@ -14,7 +14,7 @@ interface ScreenWrapperProps {
   children: React.ReactNode;
   /** Apply safe-area top padding (default: true) */
   safeTop?: boolean;
-  /** Apply safe-area bottom padding (default: true) */
+  /** Apply bottom padding (safe-area inset + tab-bar clearance) (default: true) */
   safeBottom?: boolean;
   /** Extra style for the outer container */
   style?: ViewStyle;
