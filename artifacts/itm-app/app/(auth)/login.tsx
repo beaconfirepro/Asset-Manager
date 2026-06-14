@@ -9,11 +9,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { eq } from "drizzle-orm";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { signInWithProvider } from "@/lib/auth";
 import { getDb } from "@/db/client";
 import { appUsers } from "@/db/schema";
@@ -26,7 +26,6 @@ function genId() { return Date.now().toString(36) + Math.random().toString(36).s
 
 export default function LoginScreen() {
   const colors = useColors();
-  const insets = useSafeAreaInsets();
   const { setSession } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -112,13 +111,12 @@ export default function LoginScreen() {
   };
 
   return (
+    <ScreenWrapper>
     <View
       style={[
         styles.container,
         {
           backgroundColor: colors.background,
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
         },
       ]}
     >
@@ -186,6 +184,7 @@ export default function LoginScreen() {
 
       <Text style={[styles.version, { color: colors.mutedForeground }]}>ITM v1.0 — Phase 0</Text>
     </View>
+    </ScreenWrapper>
   );
 }
 

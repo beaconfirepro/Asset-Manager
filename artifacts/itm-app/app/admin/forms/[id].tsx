@@ -4,6 +4,7 @@ import { useLocalSearchParams } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useInspectionForms, useUpdateInspectionForm } from "@/hooks/useInspectionForms";
 import { InspectionFormBuilder } from "@/components/admin/InspectionFormBuilder";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import type { InspectionForm } from "@/db/schema";
 
 export default function AdminFormEditScreen() {
@@ -23,6 +24,7 @@ export default function AdminFormEditScreen() {
   }
 
   return (
+    <ScreenWrapper>
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <InspectionFormBuilder
         initialForm={form}
@@ -33,6 +35,7 @@ export default function AdminFormEditScreen() {
         }}
       />
     </View>
+    </ScreenWrapper>
   );
 }
 

@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import {
   useReport,
   useReportItems,
@@ -218,6 +219,7 @@ export default function ReportBuilderScreen() {
   const hasDeficiencies = items.some((i) => i.item_type === "FINDING");
 
   return (
+    <ScreenWrapper safeBottom={false}>
     <ScrollView style={s.container} contentContainerStyle={s.content}>
       <View style={s.headerRow}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -559,6 +561,7 @@ export default function ReportBuilderScreen() {
         </View>
       </Modal>
     </ScrollView>
+    </ScreenWrapper>
   );
 }
 

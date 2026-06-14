@@ -21,6 +21,7 @@ import { TestEquipmentTable } from "@/components/testing/TestEquipmentTable";
 import { CalibrationModal } from "@/components/testing/CalibrationModal";
 import { useTestEquipment, useCalibrationRecords, useCreateEquipment, useCreateCalibration } from "@/hooks/useTestEquipment";
 import { useCreateCrewShift, useMaintenance } from "@/hooks/useMaintenance";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import type { TestEquipment } from "@/db/schema";
 
 export default function EquipmentScreen() {
@@ -110,6 +111,7 @@ export default function EquipmentScreen() {
   const [pendingCrewMaint, setPendingCrewMaint] = useState<typeof maintenance[0] | null>(null);
 
   return (
+    <ScreenWrapper safeBottom={false}>
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.content}
@@ -336,6 +338,7 @@ export default function EquipmentScreen() {
         </View>
       </Modal>
     </View>
+    </ScreenWrapper>
   );
 }
 

@@ -17,6 +17,7 @@ import { useUpdateQaStatus, useCreateReport, useReportForResult } from "@/hooks/
 import { StatusBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 type QaDecision = "APPROVED" | "REJECTED";
 
@@ -163,6 +164,7 @@ export default function ReviewScreen() {
   const hasPrevious = !!previousResult && previousResult.id !== result.id;
 
   return (
+    <ScreenWrapper safeBottom={false}>
     <ScrollView style={s.container} contentContainerStyle={s.content}>
       <View style={s.headerRow}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
@@ -317,6 +319,7 @@ export default function ReviewScreen() {
         </Card>
       )}
     </ScrollView>
+    </ScreenWrapper>
   );
 }
 

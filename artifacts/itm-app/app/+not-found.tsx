@@ -2,6 +2,7 @@ import { Link, Stack } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 export default function NotFoundScreen() {
   const colors = useColors();
@@ -9,6 +10,7 @@ export default function NotFoundScreen() {
   return (
     <>
       <Stack.Screen options={{ title: "Oops!" }} />
+      <ScreenWrapper>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Text style={[styles.title, { color: colors.foreground }]}>
           This screen doesn&apos;t exist.
@@ -20,6 +22,7 @@ export default function NotFoundScreen() {
           </Text>
         </Link>
       </View>
+      </ScreenWrapper>
     </>
   );
 }

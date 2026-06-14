@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useCreateInspectionForm } from "@/hooks/useInspectionForms";
 import { InspectionFormBuilder } from "@/components/admin/InspectionFormBuilder";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 export default function AdminFormNewScreen() {
   const colors = useColors();
@@ -11,6 +12,7 @@ export default function AdminFormNewScreen() {
   const createForm = useCreateInspectionForm();
 
   return (
+    <ScreenWrapper>
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <InspectionFormBuilder
         saving={createForm.isPending}
@@ -20,6 +22,7 @@ export default function AdminFormNewScreen() {
         }}
       />
     </View>
+    </ScreenWrapper>
   );
 }
 

@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/Button";
 import { FEATURES } from "@/lib/featureFlags";
 import { useCreateAiSuggestion } from "@/hooks/useAiSuggestions";
 import { getITMApiClient } from "@/lib/api";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import {
   parseFormSchema,
   parseFormData,
@@ -318,6 +319,7 @@ export default function InspectionWorkspaceScreen() {
   }
 
   return (
+    <ScreenWrapper safeTop={false} safeBottom={false}>
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={[styles.workspaceHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
         <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12}>
@@ -499,6 +501,7 @@ export default function InspectionWorkspaceScreen() {
         <CodeReferenceDrawer visible={showCodeRef} onClose={() => setShowCodeRef(false)} />
       )}
     </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 
