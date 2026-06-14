@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -350,30 +349,21 @@ export function AiGenerateFormModal({ visible, onClose, onFormCreated }: Props) 
             </View>
           </ScrollView>
 
-          {Platform.OS === "web" ? (
-            <View style={[styles.webNotice, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-              <Feather name="smartphone" size={14} color={colors.mutedForeground} />
-              <Text style={[styles.webNoticeText, { color: colors.mutedForeground }]}>
-                Form generation preview — open this screen on the iPad app to save the draft to the device database.
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.actions}>
-              <Button
-                label="Reject"
-                variant="outline"
-                onPress={handleReject}
-                disabled={stage === "SAVING"}
-                style={styles.actionBtn}
-              />
-              <Button
-                label={stage === "SAVING" ? "Saving…" : "Accept & Save Draft"}
-                onPress={handleAccept}
-                disabled={stage === "SAVING"}
-                style={styles.actionBtn}
-              />
-            </View>
-          )}
+          <View style={styles.actions}>
+            <Button
+              label="Reject"
+              variant="outline"
+              onPress={handleReject}
+              disabled={stage === "SAVING"}
+              style={styles.actionBtn}
+            />
+            <Button
+              label={stage === "SAVING" ? "Saving…" : "Accept & Save Draft"}
+              onPress={handleAccept}
+              disabled={stage === "SAVING"}
+              style={styles.actionBtn}
+            />
+          </View>
         </View>
       )}
     </Modal>
@@ -403,6 +393,4 @@ const styles = StyleSheet.create({
   fieldInfo: { flex: 1, gap: 4 },
   fieldLabel: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },
   fieldMeta: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
-  webNotice: { flexDirection: "row", gap: 8, padding: 12, borderRadius: 10, borderWidth: 1, alignItems: "flex-start" },
-  webNoticeText: { fontSize: 12, fontFamily: "Inter_400Regular", flex: 1, lineHeight: 17 },
 });
