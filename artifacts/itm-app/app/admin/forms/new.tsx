@@ -12,7 +12,7 @@ export default function AdminFormNewScreen() {
   const createForm = useCreateInspectionForm();
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper safeBottom={false}>
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <InspectionFormBuilder
         saving={createForm.isPending}
