@@ -51,8 +51,14 @@ function SideRailLayout() {
   const items = getRailItems();
 
   const isActive = (item: RailItem) => {
-    if (item.name === "index") return pathname === "/" || pathname === "";
-    return pathname.startsWith(`/${item.name}`);
+    const normalizedPathname = pathname.replace("/(tabs)", "");
+    const normalizedRoute = item.route.replace("/(tabs)", "");
+
+    if (item.name === "index") {
+      return normalizedPathname === "" || normalizedPathname === "/" || normalizedPathname === normalizedRoute;
+    }
+
+    return normalizedPathname === normalizedRoute || normalizedPathname.startsWith(`${normalizedRoute}/`);
   };
 
   return (
@@ -60,12 +66,16 @@ function SideRailLayout() {
       <View
         style={[
           railStyles.rail,
-          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 12 },
+          {
+            paddingTop: insets.top + 12,
+            paddingBottom: insets.bottom + 12,
+            backgroundColor: colors.card,
+          },
         ]}
       >
         {items.map((item) => {
           const active = isActive(item);
-          const iconColor = active ? colors.tint : "#71717A";
+          const iconColor = active ? colors.tint : colors.mutedForeground;
 
           return (
             <Pressable
@@ -73,7 +83,7 @@ function SideRailLayout() {
               onPress={() => router.push(item.route as never)}
               style={[
                 railStyles.railItem,
-                active && { backgroundColor: "rgba(255,255,255,0.08)" },
+                active && { backgroundColor: colors.muted },
               ]}
             >
               {isIOS && item.sfIcon ? (
