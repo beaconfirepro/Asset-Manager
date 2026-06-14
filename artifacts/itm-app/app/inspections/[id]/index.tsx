@@ -18,6 +18,7 @@ import * as Location from "expo-location";
 import { useColors } from "@/hooks/useColors";
 import { useAuth } from "@/context/AuthContext";
 import { useInspectionResult, usePreviousInspection, useStartInspection, useSaveAnswer, useEnqueueDeficiency, useAttachMedia, useSubmitInspection } from "@/hooks/useInspections";
+import { useOutboxConflicts, useRetryOutboxItem } from "@/hooks/useSync";
 import { useActiveForm } from "@/hooks/useInspectionForms";
 import { useInspectionSchedules } from "@/hooks/useInspectionSchedules";
 import { useInspectionSeries } from "@/hooks/useInspectionSeries";
@@ -55,8 +56,11 @@ export default function InspectionWorkspaceScreen() {
   const saveAnswer = useSaveAnswer();
   const attachMedia = useAttachMedia();
   const submitInspection = useSubmitInspection();
+  const retryOutboxItem = useRetryOutboxItem();
 
   const [result, setResult] = useState(existingResult ?? null);
+
+  const { data: outboxConflicts = [] } = useOutboxConflicts(result?.id);
 
   useEffect(() => {
     if (existingResult && !result) setResult(existingResult);
@@ -363,6 +367,40 @@ export default function InspectionWorkspaceScreen() {
             disabled={isSubmitted}
           />
 
+          {outboxConflicts.length > 0 && (
+            <View style={[styles.conflictSection, { borderColor: colors.warning + "55" }]}>
+              <View style={styles.conflictHeader}>
+                <Feather name="wifi-off" size={14} color={colors.warning} />
+                <Text style={[styles.conflictTitle, { color: colors.warning }]}>
+                  {outboxConflicts.length} sync item{outboxConflicts.length > 1 ? "s" : ""} failed to upload
+                </Text>
+              </View>
+              {outboxConflicts.map((item) => (
+                <View key={item.id} style={[styles.conflictCard, { backgroundColor: colors.warning + "11", borderColor: colors.warning + "33" }]}>
+                  <Text style={[styles.conflictItemType, { color: colors.foreground }]}>
+                    {item.entity_type.replace(/_/g, " ")} · {item.operation}
+                  </Text>
+                  {item.error && (
+                    <Text style={[styles.conflictError, { color: colors.mutedForeground }]} numberOfLines={2}>
+                      {item.error}
+                    </Text>
+                  )}
+                  <Text style={[styles.conflictAttempts, { color: colors.mutedForeground }]}>
+                    Attempts: {item.attempts} · Status: {item.status}
+                  </Text>
+                  <Button
+                    label={retryOutboxItem.isPending ? "Retrying…" : "Retry Upload"}
+                    size="sm"
+                    variant="outline"
+                    onPress={() => retryOutboxItem.mutate({ outboxItemId: item.id, entityId: item.entity_id })}
+                    disabled={retryOutboxItem.isPending}
+                    style={{ marginTop: 4 }}
+                  />
+                </View>
+              ))}
+            </View>
+          )}
+
           {isSubmitted ? (
             <View style={[styles.submittedBanner, { backgroundColor: colors.success + "22", borderColor: colors.success + "44" }]}>
               <Feather name="check-circle" size={18} color={colors.success} />
@@ -437,4 +475,11 @@ const styles = StyleSheet.create({
   submittedText: { fontSize: 14, fontFamily: "Inter_500Medium", flex: 1 },
   submitBtn: { marginTop: 12 },
   hintText: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center", marginTop: 4 },
+  conflictSection: { borderRadius: 10, borderWidth: 1, padding: 12, gap: 8 },
+  conflictHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
+  conflictTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", flex: 1 },
+  conflictCard: { borderRadius: 8, borderWidth: 1, padding: 10, gap: 4 },
+  conflictItemType: { fontSize: 12, fontFamily: "Inter_500Medium", textTransform: "capitalize" },
+  conflictError: { fontSize: 11, fontFamily: "Inter_400Regular", fontStyle: "italic" },
+  conflictAttempts: { fontSize: 11, fontFamily: "Inter_400Regular" },
 });

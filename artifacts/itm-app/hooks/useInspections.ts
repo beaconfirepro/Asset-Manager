@@ -14,7 +14,6 @@ import { isDeficient, type FormField } from "@/lib/inspections/formSchema";
 
 export function useInspectionResult(scheduleId: string | undefined) {
   const { orgId } = useAuth();
-
   return useQuery({
     queryKey: ["inspection-result", orgId, scheduleId],
     enabled: Platform.OS !== "web" && !!orgId && !!scheduleId,
@@ -24,12 +23,7 @@ export function useInspectionResult(scheduleId: string | undefined) {
       const rows = await db
         .select()
         .from(inspectionResults)
-        .where(
-          and(
-            eq(inspectionResults.org_id, orgId),
-            eq(inspectionResults.schedule_id, scheduleId),
-          ),
-        );
+        .where(and(eq(inspectionResults.org_id, orgId), eq(inspectionResults.schedule_id, scheduleId)));
       return rows[0] ?? null;
     },
     staleTime: 30_000,
@@ -38,17 +32,13 @@ export function useInspectionResult(scheduleId: string | undefined) {
 
 export function useInspectionResults() {
   const { orgId } = useAuth();
-
   return useQuery({
     queryKey: ["inspection-results", orgId],
     enabled: Platform.OS !== "web" && !!orgId,
     queryFn: async (): Promise<InspectionResult[]> => {
       if (!orgId) return [];
       const db = await getDb();
-      return db
-        .select()
-        .from(inspectionResults)
-        .where(eq(inspectionResults.org_id, orgId));
+      return db.select().from(inspectionResults).where(eq(inspectionResults.org_id, orgId));
     },
     staleTime: 60_000,
   });
@@ -56,7 +46,6 @@ export function useInspectionResults() {
 
 export function usePreviousInspection(hubspotAssetId: string | undefined) {
   const { orgId } = useAuth();
-
   return useQuery({
     queryKey: ["prev-inspection", orgId, hubspotAssetId],
     enabled: Platform.OS !== "web" && !!orgId && !!hubspotAssetId,
@@ -66,12 +55,7 @@ export function usePreviousInspection(hubspotAssetId: string | undefined) {
       const rows = await db
         .select()
         .from(inspectionResults)
-        .where(
-          and(
-            eq(inspectionResults.org_id, orgId),
-            eq(inspectionResults.hubspot_asset_id, hubspotAssetId),
-          ),
-        );
+        .where(and(eq(inspectionResults.org_id, orgId), eq(inspectionResults.hubspot_asset_id, hubspotAssetId)));
       const submitted = rows
         .filter((r) => r.status === "QA_REVIEW" || r.status === "APPROVED")
         .sort((a, b) => (b.submitted_at ?? "").localeCompare(a.submitted_at ?? ""));
@@ -91,7 +75,6 @@ type StartInspectionParams = {
 export function useStartInspection() {
   const { orgId } = useAuth();
   const qc = useQueryClient();
-
   return useMutation({
     mutationFn: async (params: StartInspectionParams): Promise<InspectionResult | undefined> => {
       if (Platform.OS === "web" || !orgId) return;
@@ -101,18 +84,11 @@ export function useStartInspection() {
       const existing = await db
         .select()
         .from(inspectionResults)
-        .where(
-          and(
-            eq(inspectionResults.org_id, orgId),
-            eq(inspectionResults.schedule_id, params.scheduleId),
-          ),
-        );
-
+        .where(and(eq(inspectionResults.org_id, orgId), eq(inspectionResults.schedule_id, params.scheduleId)));
       if (existing[0]) return existing[0];
 
       const clientUuid = genId();
       const resultId = genId();
-
       const newResult: NewInspectionResult = {
         id: resultId,
         org_id: orgId,
@@ -138,7 +114,6 @@ export function useStartInspection() {
         updated_at: now,
         sync_status: "PENDING",
       };
-
       await db.insert(inspectionResults).values(newResult);
       await enqueue({
         org_id: orgId,
@@ -147,8 +122,8 @@ export function useStartInspection() {
         operation: "CREATE",
         payload: { id: resultId, client_uuid: clientUuid, schedule_id: params.scheduleId },
         target_provider: "ITM",
+        client_uuid: clientUuid,
       });
-
       return newResult as InspectionResult;
     },
     onSuccess: (_, params) => {
@@ -169,9 +144,8 @@ type SaveAnswerParams = {
 export function useSaveAnswer() {
   const { orgId } = useAuth();
   const qc = useQueryClient();
-
   return useMutation({
-    mutationFn: async (params: SaveAnswerParams) => {
+    mutationFn: async (params: SaveAnswerParams): Promise<string | undefined> => {
       if (Platform.OS === "web" || !orgId) return;
       const db = await getDb();
       const now = new Date().toISOString();
@@ -181,6 +155,8 @@ export function useSaveAnswer() {
 
       const defEnqueuedKey = `_def_enqueued_${params.field.id}`;
       const alreadyEnqueued = formData[defEnqueuedKey] === true;
+
+      let deficiencyTicketId: string | undefined;
 
       if (isDeficient(params.field, params.answer) && !alreadyEnqueued) {
         try {
@@ -194,6 +170,7 @@ export function useSaveAnswer() {
           });
           formData[defEnqueuedKey] = true;
           formData[`_def_ticket_${params.field.id}`] = `pending_${outboxItem.client_uuid}`;
+          deficiencyTicketId = `pending_${outboxItem.client_uuid}`;
         } catch {
         }
       }
@@ -202,7 +179,12 @@ export function useSaveAnswer() {
 
       await db
         .update(inspectionResults)
-        .set({ form_data: newFormDataStr, updated_at: now, sync_status: "PENDING" })
+        .set({
+          form_data: newFormDataStr,
+          updated_at: now,
+          sync_status: "PENDING",
+          ...(deficiencyTicketId ? { hubspot_deficiency_ticket_id: deficiencyTicketId } : {}),
+        })
         .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
 
       return newFormDataStr;
@@ -225,12 +207,24 @@ type EnqueueDeficiencyParams = {
 export function useEnqueueDeficiency() {
   const { orgId } = useAuth();
   const qc = useQueryClient();
-
   return useMutation({
-    mutationFn: async (params: EnqueueDeficiencyParams) => {
+    mutationFn: async (params: EnqueueDeficiencyParams): Promise<string | undefined> => {
       if (Platform.OS === "web" || !orgId) return;
       const db = await getDb();
       const now = new Date().toISOString();
+
+      const [currentResult] = await db
+        .select()
+        .from(inspectionResults)
+        .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
+
+      if (!currentResult) return;
+
+      const currentFormData = JSON.parse(currentResult.form_data) as Record<string, unknown>;
+      const defEnqueuedKey = `_def_enqueued_${params.field.id}`;
+      if (currentFormData[defEnqueuedKey] === true) {
+        return currentResult.hubspot_deficiency_ticket_id ?? undefined;
+      }
 
       const connector = getHubSpotConnector();
       const outboxItem = await connector.createDeficiencyTicket({
@@ -241,16 +235,21 @@ export function useEnqueueDeficiency() {
         severity: params.severity,
       });
 
+      const ticketId = `pending_${outboxItem.client_uuid}`;
+      currentFormData[defEnqueuedKey] = true;
+      currentFormData[`_def_ticket_${params.field.id}`] = ticketId;
+
       await db
         .update(inspectionResults)
         .set({
-          hubspot_deficiency_ticket_id: `pending_${outboxItem.client_uuid}`,
+          hubspot_deficiency_ticket_id: ticketId,
+          form_data: JSON.stringify(currentFormData),
           updated_at: now,
           sync_status: "PENDING",
         })
         .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
 
-      return outboxItem.client_uuid;
+      return ticketId;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["inspection-result", orgId] });
@@ -273,7 +272,6 @@ type AttachMediaParams = {
 export function useAttachMedia() {
   const { orgId } = useAuth();
   const qc = useQueryClient();
-
   return useMutation({
     mutationFn: async (params: AttachMediaParams) => {
       if (Platform.OS === "web" || !orgId) return;
@@ -281,21 +279,24 @@ export function useAttachMedia() {
       const now = new Date().toISOString();
 
       if (params.type === "photo" && params.photoUrl) {
-        const existing = params.currentPhotoUrls ? JSON.parse(params.currentPhotoUrls) as string[] : [];
-        const updated = [...existing, params.photoUrl];
-        await db.update(inspectionResults)
-          .set({ photo_urls: JSON.stringify(updated), updated_at: now, sync_status: "PENDING" })
+        const existing = params.currentPhotoUrls ? (JSON.parse(params.currentPhotoUrls) as string[]) : [];
+        await db
+          .update(inspectionResults)
+          .set({ photo_urls: JSON.stringify([...existing, params.photoUrl]), updated_at: now, sync_status: "PENDING" })
           .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
       } else if (params.type === "photo_remove" && params.replacePhotoUrls) {
-        await db.update(inspectionResults)
+        await db
+          .update(inspectionResults)
           .set({ photo_urls: JSON.stringify(params.replacePhotoUrls), updated_at: now, sync_status: "PENDING" })
           .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
       } else if (params.type === "signature" && params.signatureUrl) {
-        await db.update(inspectionResults)
+        await db
+          .update(inspectionResults)
           .set({ signature_url: params.signatureUrl, updated_at: now, sync_status: "PENDING" })
           .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
       } else if (params.type === "gps") {
-        await db.update(inspectionResults)
+        await db
+          .update(inspectionResults)
           .set({ gps_lat: params.gpsLat ?? null, gps_lng: params.gpsLng ?? null, updated_at: now, sync_status: "PENDING" })
           .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
       }
@@ -309,14 +310,14 @@ export function useAttachMedia() {
 export function useSubmitInspection() {
   const { orgId } = useAuth();
   const qc = useQueryClient();
-
   return useMutation({
     mutationFn: async (params: { resultId: string; scheduleId: string; clientUuid: string }) => {
       if (Platform.OS === "web" || !orgId) return;
       const db = await getDb();
       const now = new Date().toISOString();
 
-      await db.update(inspectionResults)
+      await db
+        .update(inspectionResults)
         .set({ status: "QA_REVIEW", submitted_at: now, updated_at: now, sync_status: "PENDING" })
         .where(and(eq(inspectionResults.id, params.resultId), eq(inspectionResults.org_id, orgId)));
 
@@ -330,6 +331,7 @@ export function useSubmitInspection() {
         entity_type: "inspection_result",
         entity_id: params.resultId,
         operation: "UPDATE",
+        client_uuid: params.clientUuid,
         payload: {
           id: params.resultId,
           org_id: orgId,
