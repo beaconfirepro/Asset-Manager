@@ -5,6 +5,10 @@ import { useColors } from "@/hooks/useColors";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 const MAX_CONTENT_WIDTH = 700;
+/** Extra bottom spacing to clear the tab bar on web. */
+const TAB_BAR_HEIGHT_WEB = 96;
+/** Extra bottom spacing to clear the tab bar on native. */
+const TAB_BAR_HEIGHT_NATIVE = 40;
 
 interface ScreenWrapperProps {
   children: React.ReactNode;
@@ -44,7 +48,7 @@ export function ScreenWrapper({
         safeTop && { paddingTop: insets.top },
         safeBottom && {
           paddingBottom:
-            insets.bottom + (Platform.OS === "web" ? 96 : 40),
+            insets.bottom + (Platform.OS === "web" ? TAB_BAR_HEIGHT_WEB : TAB_BAR_HEIGHT_NATIVE),
         },
         style,
       ]}
