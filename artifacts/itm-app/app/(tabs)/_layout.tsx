@@ -20,6 +20,14 @@ function NativeTabLayout() {
         <Icon sf={{ default: "building.2", selected: "building.2.fill" }} />
         <Label>Assets</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="series">
+        <Icon sf={{ default: "repeat", selected: "repeat.1" }} />
+        <Label>Series</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="calendar">
+        <Icon sf={{ default: "calendar", selected: "calendar" }} />
+        <Label>Calendar</Label>
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -78,11 +86,37 @@ function ClassicTabLayout() {
         name="assets"
         options={{
           title: "Assets",
+          headerShown: false,
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="building.2" tintColor={color} size={24} />
             ) : (
               <Feather name="layers" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="series"
+        options={{
+          title: "Series",
+          headerShown: false,
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="repeat" tintColor={color} size={24} />
+            ) : (
+              <Feather name="repeat" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: "Calendar",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="calendar" tintColor={color} size={24} />
+            ) : (
+              <Feather name="calendar" size={22} color={color} />
             ),
         }}
       />

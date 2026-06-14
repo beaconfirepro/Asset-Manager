@@ -1,10 +1,10 @@
 import React from "react";
-import { StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { useColors } from "@/hooks/useColors";
 
 type CardProps = {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   elevated?: boolean;
 };
 
@@ -16,7 +16,7 @@ type CardHeaderProps = {
 
 type CardContentProps = {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 };
 
 export function Card({ children, style, elevated = false }: CardProps) {
