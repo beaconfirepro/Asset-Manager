@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useReports, type ReportWithResult } from "@/hooks/useReports";
 import { StatusBadge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 const STATUS_FILTERS = ["ALL", "DRAFT", "QA_REVIEW", "APPROVED", "SENT"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
@@ -46,7 +46,6 @@ function ReportRow({ report, onPress }: { report: ReportWithResult; onPress: () 
 export default function ReportsIndexScreen() {
   const colors = useColors();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const s = styles(colors);
 
   const { data: reports = [], isLoading } = useReports();
@@ -59,15 +58,17 @@ export default function ReportsIndexScreen() {
 
   if (isLoading) {
     return (
-      <View style={s.center}>
-        <ActivityIndicator color={colors.primary} size="large" />
-      </View>
+      <ScreenWrapper>
+        <View style={s.center}>
+          <ActivityIndicator color={colors.primary} size="large" />
+        </View>
+      </ScreenWrapper>
     );
   }
 
   return (
-    <View style={s.container}>
-      <View style={[s.header, { paddingTop: insets.top + 12 }]}>
+    <ScreenWrapper>
+      <View style={s.header}>
         <Text style={s.pageTitle}>Reports</Text>
         <Text style={s.pageSubtitle}>{reports.length} total</Text>
       </View>
@@ -114,13 +115,12 @@ export default function ReportsIndexScreen() {
           ItemSeparatorComponent={() => <View style={s.separator} />}
         />
       )}
-    </View>
+    </ScreenWrapper>
   );
 }
 
 function styles(colors: ReturnType<typeof useColors>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background },
     center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background },
     header: { paddingHorizontal: 20, paddingBottom: 16 },
     pageTitle: { fontSize: 28, fontFamily: "Inter_700Bold", color: colors.foreground },

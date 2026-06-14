@@ -17,6 +17,7 @@ import { SystemTypeBadge } from "@/components/assets/SystemTypeBadge";
 import { AiGenerateFormModal } from "@/components/ai/AiGenerateFormModal";
 import { FEATURES } from "@/lib/featureFlags";
 import { useCodeUpdateFlags } from "@/hooks/useCodeUpdateFlags";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import type { InspectionForm } from "@/db/schema";
 
 export default function AdminFormsListScreen() {
@@ -28,6 +29,7 @@ export default function AdminFormsListScreen() {
   const outdatedFormIds = new Set(updateFlags.map((f) => f.form_id));
 
   return (
+    <ScreenWrapper safeBottom={false}>
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={forms}
@@ -117,6 +119,7 @@ export default function AdminFormsListScreen() {
         />
       )}
     </View>
+    </ScreenWrapper>
   );
 }
 

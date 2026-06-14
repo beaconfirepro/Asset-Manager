@@ -18,6 +18,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { TestRecordTable } from "@/components/testing/TestRecordTable";
 import { TestRecordModal } from "@/components/testing/TestRecordModal";
 import { MaintenanceModal } from "@/components/testing/MaintenanceModal";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import { useSystemTests, useCreateTest, useDeleteTest } from "@/hooks/useTests";
 import { useMaintenance, useCreateMaintenance } from "@/hooks/useMaintenance";
 import { MaintenanceTable } from "@/components/assets/MaintenanceTable";
@@ -60,6 +61,7 @@ export default function TestingScreen() {
   };
 
   return (
+    <ScreenWrapper safeBottom={false}>
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <TabsView
         tabs={[
@@ -206,6 +208,7 @@ export default function TestingScreen() {
         }}
       />
     </View>
+    </ScreenWrapper>
   );
 }
 

@@ -20,6 +20,7 @@ import { useCodeUpdateFlags } from "@/hooks/useCodeUpdateFlags";
 import { useAuth } from "@/context/AuthContext";
 import { FEATURES } from "@/lib/featureFlags";
 import { Platform } from "react-native";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 
 type AiTab = "suggestions" | "code_library" | "code_updates";
 
@@ -53,6 +54,7 @@ export default function AiCodeIntelligenceScreen() {
   };
 
   return (
+    <ScreenWrapper safeBottom={false}>
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <View style={styles.headerTop}>
@@ -228,6 +230,7 @@ export default function AiCodeIntelligenceScreen() {
 
       <CodeReferenceDrawer visible={showCodeRef} onClose={() => setShowCodeRef(false)} />
     </View>
+    </ScreenWrapper>
   );
 }
 

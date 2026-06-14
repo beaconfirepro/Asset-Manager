@@ -6,6 +6,7 @@ packages:
 
 # allowBuilds:
 #   esbuild: true
+
 autoInstallPeers: false
 
 catalog:

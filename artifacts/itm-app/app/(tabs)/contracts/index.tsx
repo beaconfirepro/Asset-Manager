@@ -18,6 +18,7 @@ import { ContractCard } from "@/components/contracts/ContractCard";
 import { ContractRevenuePanel } from "@/components/contracts/ContractRevenuePanel";
 import { InspectionContractFormModal } from "@/components/contracts/InspectionContractFormModal";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ScreenWrapper } from "@/components/ui/ScreenWrapper";
 import type { InspectionContract } from "@/db/schema";
 
 type FilterTab = "all" | "booked" | "unbooked";
@@ -69,14 +70,16 @@ export default function ContractListScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <ActivityIndicator color={colors.primary} />
-      </View>
+      <ScreenWrapper safeTop={false}>
+        <View style={[styles.center, { backgroundColor: colors.background }]}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      </ScreenWrapper>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <ScreenWrapper safeTop={false} safeBottom={false}>
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
@@ -144,12 +147,11 @@ export default function ContractListScreen() {
           await createContract.mutateAsync(data);
         }}
       />
-    </View>
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   list: { padding: 16, paddingBottom: 100 },
   header: { gap: 14, marginBottom: 14 },
