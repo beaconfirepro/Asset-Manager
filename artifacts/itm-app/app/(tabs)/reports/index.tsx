@@ -58,9 +58,11 @@ export default function ReportsIndexScreen() {
 
   if (isLoading) {
     return (
-      <View style={s.center}>
-        <ActivityIndicator color={colors.primary} size="large" />
-      </View>
+      <ScreenWrapper>
+        <View style={s.center}>
+          <ActivityIndicator color={colors.primary} size="large" />
+        </View>
+      </ScreenWrapper>
     );
   }
 
